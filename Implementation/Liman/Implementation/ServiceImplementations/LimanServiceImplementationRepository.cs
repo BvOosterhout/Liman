@@ -15,10 +15,10 @@ namespace Liman.Implementation.ServiceImplementations
 
         public void Add(Type implementationType)
         {
-            var attribute = implementationType.GetCustomAttribute<ServiceImplementationAttribute>()
-                ?? throw new ArgumentException();
-
-            Add(implementationType, attribute.Lifetime, attribute.ServiceTypes);
+            if (!TryAdd(implementationType))
+            {
+                throw new ArgumentException($"Type '{implementationType.GetReadableName()}' is missing {nameof(ServiceImplementationAttribute)}");
+            }
         }
 
         public void Add(Type implementationType, ServiceImplementationLifetime lifetime, Delegate? constructor = null)
@@ -47,6 +47,44 @@ namespace Liman.Implementation.ServiceImplementations
             Add(implementation, serviceTypes);
         }
 
+        public void Add(IServiceCollection serviceCollection)
+        {
+            foreach (var service in serviceCollection)
+            {
+                Add(service);
+            }
+        }
+
+        private void Add(ServiceDescriptor service)
+        {
+            if (service.IsKeyedService)
+            {
+                throw new NotSupportedException("Keyed services are not supported.");
+            }
+
+            var implementationType = service.ImplementationType ?? service.ServiceType;
+
+            if (!implementationByType.TryGetValue(implementationType, out var implementation))
+            {
+                var factoryMethod = service.ImplementationInstance != null
+                    ? () => service.ImplementationInstance
+                    : (Delegate?)service.ImplementationFactory;
+
+                implementation = new LimanServiceImplementation(implementationType, ToLifetime(service.Lifetime), factoryMethod);
+            }
+
+            if (implementationType.IsGenericTypeDefinition)
+            {
+                if (!service.ServiceType.IsGenericTypeDefinition) throw new ArgumentException();
+                genericImplementationsByService.AddItem(service.ServiceType, implementation);
+            }
+            else
+            {
+                if (service.ServiceType.IsGenericTypeDefinition) throw new ArgumentException();
+                implementationsByService.AddItem(service.ServiceType, implementation);
+            }
+        }
+
         public void Add(Assembly assembly, params Type[] exceptions)
         {
             var types = assembly.GetTypes();
@@ -63,12 +101,6 @@ namespace Liman.Implementation.ServiceImplementations
                 if (type.IsClass && !type.IsAbstract)
                 {
                     TryAdd(type);
-
-                    if (type.IsAssignableTo(typeof(ILimanDependencyConfiguration)))
-                    {
-                        var configuration = (ILimanDependencyConfiguration?)Activator.CreateInstance(type) ?? throw new InvalidOperationException();
-                        configuration.Configure(this);
-                    }
                 }
             }
         }
@@ -132,10 +164,44 @@ namespace Liman.Implementation.ServiceImplementations
         private bool TryAdd(Type implementationType)
         {
             var attribute = implementationType.GetCustomAttribute<ServiceImplementationAttribute>();
-            if (attribute == null) return false;
+            if (attribute != null)
+            {
+                Add(implementationType, attribute.Lifetime, attribute.ServiceTypes);
+                return true;
+            }
+            else if (implementationType.IsAssignableTo(typeof(ILimanDependencyConfiguration)))
+            {
+                var configuration = (ILimanDependencyConfiguration?)Activator.CreateInstance(implementationType)
+                    ?? throw new InvalidOperationException();
+                configuration.Configure(this);
+                return true;
+            }
+            else if (implementationType.IsAssignableTo(typeof(ILimanClassicDependencyConfiguration)))
+            {
+                var configuration = (ILimanClassicDependencyConfiguration?)Activator.CreateInstance(implementationType)
+                    ?? throw new InvalidOperationException();
 
-            Add(implementationType, attribute.Lifetime, attribute.ServiceTypes);
-            return true;
+                var classicServiceCollection = new ServiceCollection();
+                configuration.Configure(classicServiceCollection);
+                Add(classicServiceCollection);
+
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        private ServiceImplementationLifetime ToLifetime(ServiceLifetime classicLifetime)
+        {
+            switch (classicLifetime)
+            {
+                case ServiceLifetime.Singleton: return ServiceImplementationLifetime.Singleton;
+                case ServiceLifetime.Scoped: return ServiceImplementationLifetime.Scoped;
+                case ServiceLifetime.Transient: return ServiceImplementationLifetime.Transient;
+                default: throw new NotSupportedException($"Classic service lifetime '{classicLifetime}' is not supported");
+            }
         }
 
         private void Add(LimanServiceImplementation implementation, IEnumerable<Type> serviceTypes)

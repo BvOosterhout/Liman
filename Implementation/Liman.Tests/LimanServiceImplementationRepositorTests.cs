@@ -1,0 +1,199 @@
+﻿using FluentAssertions;
+using Liman.Implementation.ServiceImplementations;
+using Liman.Tests.AssemblyInject;
+using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
+
+namespace Liman.Tests
+{
+    public class LimanServiceImplementationRepositoryTests
+    {
+        private readonly LimanServiceImplementationRepository repository;
+
+        public LimanServiceImplementationRepositoryTests()
+        {
+            repository = new LimanServiceImplementationRepository();
+        }
+
+        [Fact]
+        public void Add_AddsImplementation()
+        {
+            // Arrange
+            var implementationType = typeof(MyServiceImplementation);
+
+            // Act
+            repository.Add(implementationType, ServiceImplementationLifetime.Any);
+
+            // Assert
+            repository.TryGet(implementationType, out var implementation).Should().BeTrue();
+            implementation.Should().NotBeNull();
+            implementation!.Type.Should().Be(implementationType);
+        }
+
+        [Fact]
+        public void Add_WithAttribute_AddsImplementation()
+        {
+            // Arrange
+            var implementationType = typeof(MyServiceImplementationWithAttribute);
+
+            // Act
+            repository.Add(implementationType);
+
+            // Assert
+            repository.TryGet(implementationType, out var implementation).Should().BeTrue();
+            implementation!.Type.Should().Be(implementationType);
+            implementation!.Lifetime.Should().Be(ServiceImplementationLifetime.Scoped);
+        }
+
+        [Fact]
+        public void Add_WithDuplicateType_DoesNotAddAgain()
+        {
+            // Arrange
+            var implementationType = typeof(MyServiceImplementation);
+            repository.Add(implementationType, ServiceImplementationLifetime.Any);
+
+            // Act
+            repository.Add(implementationType, ServiceImplementationLifetime.Any);
+
+            // Assert
+            repository.TryGet(implementationType, out var implementation).Should().BeTrue();
+            implementation.Should().NotBeNull();
+        }
+
+        [Fact]
+        public void Add_WithAssembly_AddsAllValidTypes()
+        {
+            // Arrange
+            var assembly = Assembly.GetExecutingAssembly();
+
+            // Act
+            repository.Add(assembly);
+
+            // Assert
+            repository.GetAll(typeof(IAssemblyService)).Should().ContainSingle()
+                .Which.Type.Should().Be(typeof(AssemblyServiceImplementation));
+        }
+
+        [Fact]
+        public void TryGet_WithExistingServiceType_ReturnsTrueAndImplementation()
+        {
+            // Arrange
+            var implementationType = typeof(MyServiceImplementation);
+            repository.Add(implementationType, ServiceImplementationLifetime.Any);
+
+            // Act
+            var result = repository.TryGet(typeof(ITestService), out var implementation);
+
+            // Assert
+            result.Should().BeTrue();
+            implementation.Should().NotBeNull();
+            implementation!.Type.Should().Be(implementationType);
+        }
+
+        [Fact]
+        public void TryGet_WithNonExistingServiceType_ReturnsFalse()
+        {
+            // Act
+            var result = repository.TryGet(typeof(ITestService), out var implementation);
+
+            // Assert
+            result.Should().BeFalse();
+            implementation.Should().BeNull();
+        }
+
+        [Fact]
+        public void GetAll_WithExistingServiceType_ReturnsAllImplementations()
+        {
+            // Arrange
+            repository.Add(typeof(MyServiceImplementation), ServiceImplementationLifetime.Any);
+            repository.Add(typeof(MyAlternateServiceImplementation), ServiceImplementationLifetime.Any);
+
+            // Act
+            var implementations = repository.GetAll(typeof(ITestService)).ToList();
+
+            // Assert
+            implementations.Should().HaveCount(2);
+            implementations.Should().ContainSingle(x => x.Type == typeof(MyServiceImplementation));
+            implementations.Should().ContainSingle(x => x.Type == typeof(MyAlternateServiceImplementation));
+        }
+
+        [Fact]
+        public void GetApplicationImplementations_ReturnsApplicationLifetimeServices()
+        {
+            // Arrange
+            var implementationType = typeof(MyServiceImplementation);
+            repository.Add(implementationType, ServiceImplementationLifetime.Application);
+            repository.Add(typeof(MyAlternateServiceImplementation), ServiceImplementationLifetime.Singleton);
+
+            // Act
+            var implementations = repository.GetApplicationImplementations().ToList();
+
+            // Assert
+            implementations.Should().HaveCount(1);
+            implementations[0].Type.Should().Be(implementationType);
+        }
+
+        [Fact]
+        public void Add_DependencyConfiguration_AddsImplementation()
+        {
+            // Arrange
+            repository.Add(typeof(DependencyConfiguration));
+
+            // Act
+            var result = repository.TryGet(typeof(IList<string>), out var implementation);
+
+            // Assert
+            result.Should().BeTrue();
+            implementation!.Type.Should().Be(typeof(List<string>));
+            implementation!.Lifetime.Should().Be(ServiceImplementationLifetime.Transient);
+        }
+
+        [Fact]
+        public void Add_ClassicDependencyConfiguration_AddsImplementation()
+        {
+            // Arrange
+            repository.Add(typeof(ClassicDependencyConfiguration));
+
+            // Act
+            var result = repository.TryGet(typeof(IList<string>), out var implementation);
+
+            // Assert
+            result.Should().BeTrue();
+            implementation!.Type.Should().Be(typeof(List<string>));
+            implementation!.Lifetime.Should().Be(ServiceImplementationLifetime.Transient);
+        }
+
+        private interface ITestService
+        {
+        }
+
+        public class MyServiceImplementation : ITestService
+        {
+        }
+
+        public class MyAlternateServiceImplementation : ITestService
+        {
+        }
+
+        [ServiceImplementation(ServiceImplementationLifetime.Scoped)]
+        public class MyServiceImplementationWithAttribute : ITestService
+        {
+        }
+
+        public class DependencyConfiguration : ILimanDependencyConfiguration
+        {
+            public void Configure(ILimanServiceCollection services)
+            {
+                services.Add(typeof(List<>), ServiceImplementationLifetime.Transient);
+            }
+        }
+
+        public class ClassicDependencyConfiguration : ILimanClassicDependencyConfiguration
+        {
+            public void Configure(IServiceCollection services)
+            {
+                services.AddTransient(typeof(IList<>), typeof(List<>));
+            }
+        }
+    }
+}
