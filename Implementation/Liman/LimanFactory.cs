@@ -1,4 +1,5 @@
-﻿using Liman.Implementation.Lifetimes;
+﻿using Liman.Implementation;
+using Liman.Implementation.Lifetimes;
 using Liman.Implementation.ServiceFactories;
 using Liman.Implementation.ServiceImplementations;
 using Liman.Implementation.ServiceProviders;
@@ -30,6 +31,8 @@ namespace Liman
         public static ILimanApplication CreateApplication(ILimanServiceCollection serviceCollection)
         {
             var serviceProvider = CreateServiceProvider(serviceCollection);
+
+            return new LimanApplication(serviceProvider);
         }
     }
 }

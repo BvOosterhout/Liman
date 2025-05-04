@@ -41,6 +41,7 @@ namespace Liman.Implementation.ServiceImplementations
             }
 
             UsedServices = usedServices.AsReadOnly();
+            CustomParameters = customParameters;
         }
 
         public Type Type { get; }
@@ -50,8 +51,15 @@ namespace Liman.Implementation.ServiceImplementations
 
         public object CreateInstance(object?[] arguments)
         {
-            return factoryMethod.Invoke(factoryMethodInstance, arguments)
-                ?? throw new NullReferenceException();
+            if (factoryMethod is ConstructorInfo constructor)
+            {
+                return constructor.Invoke(arguments);
+            }
+            else
+            {
+                return factoryMethod.Invoke(factoryMethodInstance, arguments)
+                    ?? throw new NullReferenceException();
+            }
         }
 
         private static MethodBase GetConstructor(Type type)

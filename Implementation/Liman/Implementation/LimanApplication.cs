@@ -27,6 +27,7 @@ namespace Liman.Implementation
                 if (runnables.Count > 1) throw new Exception("More than one runnable service found");
 
                 runnable = runnables.FirstOrDefault();
+                runnable?.Run();
             }
             else
             {
