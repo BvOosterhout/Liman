@@ -4,26 +4,19 @@ namespace Liman.Implementation.ServiceImplementations
 {
     internal class LimanServiceImplementation
     {
-        private readonly MethodBase factoryMethod;
-        private readonly object? factoryMethodInstance;
-
         public LimanServiceImplementation(Type type, ServiceImplementationLifetime lifetime, Delegate? factoryMethod)
         {
             Type = type;
             Lifetime = lifetime;
 
-            if (factoryMethod != null)
-            {
-            }
-
-            this.factoryMethod = factoryMethod?.Method ?? GetConstructor(type);
-            factoryMethodInstance = factoryMethod?.Target;
+            FactoryMethod = factoryMethod?.Method ?? GetConstructor(type);
+            FactoryMethodInstance = factoryMethod?.Target;
 
             var usedServices = new List<Type>();
             var customParameters = new List<Type>();
             bool unInjectable = false;
 
-            foreach (var parameter in this.factoryMethod.GetParameters())
+            foreach (var parameter in FactoryMethod.GetParameters())
             {
                 if (parameter.GetCustomAttribute<NoInjectionAttribute>() != null)
                 {
@@ -48,16 +41,18 @@ namespace Liman.Implementation.ServiceImplementations
         public ServiceImplementationLifetime Lifetime { get; }
         public IReadOnlyList<Type> UsedServices { get; }
         public IReadOnlyList<Type> CustomParameters { get; }
+        public MethodBase FactoryMethod { get; }
+        public object? FactoryMethodInstance { get; }
 
         public object CreateInstance(object?[] arguments)
         {
-            if (factoryMethod is ConstructorInfo constructor)
+            if (FactoryMethod is ConstructorInfo constructor)
             {
                 return constructor.Invoke(arguments);
             }
             else
             {
-                return factoryMethod.Invoke(factoryMethodInstance, arguments)
+                return FactoryMethod.Invoke(FactoryMethodInstance, arguments)
                     ?? throw new NullReferenceException();
             }
         }

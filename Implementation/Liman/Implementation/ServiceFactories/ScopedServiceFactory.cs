@@ -34,7 +34,7 @@ namespace Liman.Implementation.ServiceFactories
 
         public override object? Get(IServiceScope? scope, object?[] customArguments)
         {
-            if (scope == null) throw new InvalidServiceLifetimeException($"Service implementation '{ImplementationType}' cannot be instantiated without a scope");
+            if (scope == null) throw new LimanException($"Service implementation '{ImplementationType}' cannot be instantiated without a scope");
 
             if (!instanceByScope.TryGetValue(scope, out var instance))
             {

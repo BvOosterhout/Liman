@@ -6,6 +6,8 @@ namespace Liman.Implementation.ServiceImplementations
     {
         IEnumerable<LimanServiceImplementation> GetAll(Type serviceType);
         IEnumerable<LimanServiceImplementation> GetApplicationImplementations();
+        ServiceImplementationLifetime GetEffectiveLifetime(LimanServiceImplementation implementation);
         bool TryGet(Type serviceType, [MaybeNullWhen(false)] out LimanServiceImplementation serviceImplementation);
+        void Validate(LimanServiceImplementation implementation);
     }
 }

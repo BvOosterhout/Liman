@@ -163,7 +163,45 @@ namespace Liman.Tests
             implementation!.Lifetime.Should().Be(ServiceImplementationLifetime.Transient);
         }
 
+        [Fact]
+        public void ApplyTo_AddsRegisteredServicesToServiceCollection()
+        {
+            // Arrange
+            var serviceCollection = new ServiceCollection();
+
+            // Add some implementations to the repository
+            repository.Add(typeof(MyServiceImplementation), ServiceImplementationLifetime.Singleton);
+            repository.Add(typeof(MyServiceImplementationWithAttribute));
+            repository.Add(typeof(IFactoryService), ServiceImplementationLifetime.Singleton, CreateFactoryService);
+
+            // Act
+            repository.ApplyTo(serviceCollection);
+
+            // Assert
+            var serviceProvider = serviceCollection.BuildServiceProvider();
+
+            // Verify that the services are registered with the correct lifetimes
+            var services = serviceProvider.GetService<IEnumerable<ITestService>>();
+            services.Should().ContainSingle(x => x.GetType() == typeof(MyServiceImplementation));
+            services.Should().ContainSingle(x => x.GetType() == typeof(MyServiceImplementationWithAttribute));
+
+            // verify that factory service is registered
+            var factoryService = serviceProvider.GetService<IFactoryService>();
+            factoryService.Should().BeOfType<FactoryImplementation>();
+        }
+
+        private object CreateFactoryService(IServiceProvider serviceProvider, IEnumerable<ITestService> testServices)
+        {
+            if (!testServices.Any()) throw new ArgumentException();
+
+            return new FactoryImplementation(serviceProvider);
+        }
+
         private interface ITestService
+        {
+        }
+
+        private interface IFactoryService
         {
         }
 
@@ -193,6 +231,13 @@ namespace Liman.Tests
             public void Configure(IServiceCollection services)
             {
                 services.AddTransient(typeof(IList<>), typeof(List<>));
+            }
+        }
+
+        public class FactoryImplementation : IFactoryService
+        {
+            public FactoryImplementation(IServiceProvider serviceProvider)
+            {
             }
         }
     }

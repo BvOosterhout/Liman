@@ -8,15 +8,18 @@ namespace Liman.Implementation.ServiceFactories
         private readonly Dictionary<Type, IServiceFactory> factoryByServiceType = new();
         private readonly ILimanServiceImplementationRepository serviceImplementationRepository;
         private readonly ILimanServiceLifetimeManager serviceLifetimeManager;
+        private readonly bool validate;
         private readonly List<LimanServiceImplementation> creationsInProgress = new();
         private readonly List<IInitializable> uninitialized = new();
 
         public ServiceFactoryProvider(
             ILimanServiceImplementationRepository serviceImplementationRepository,
-            ILimanServiceLifetimeManager serviceLifetimeManager)
+            ILimanServiceLifetimeManager serviceLifetimeManager,
+            bool validate)
         {
             this.serviceImplementationRepository = serviceImplementationRepository;
             this.serviceLifetimeManager = serviceLifetimeManager;
+            this.validate = validate;
         }
 
         public IServiceFactory Get(Type serviceType)
@@ -106,32 +109,22 @@ namespace Liman.Implementation.ServiceFactories
 
         private IServiceFactory Create(LimanServiceImplementation implementationType)
         {
+            if (validate)
+            {
+                serviceImplementationRepository.Validate(implementationType);
+            }
+
             switch (implementationType.Lifetime)
             {
                 case ServiceImplementationLifetime.Singleton:
                 case ServiceImplementationLifetime.Application:
-                    if (HasScopedDependencies(implementationType))
-                    {
-                        var scopedDependencies = string.Join(", ", GetScopedDependencies(implementationType));
-
-                        throw new InvalidServiceLifetimeException($"Cannot instantiate singleton '{implementationType}' because it has scoped dependencies. ({scopedDependencies})");
-                    }
                     return new SingletonServiceFactory(this, serviceLifetimeManager, implementationType);
                 case ServiceImplementationLifetime.Transient:
                     return new TransientServiceFactory(this, serviceLifetimeManager, implementationType);
                 case ServiceImplementationLifetime.Scoped:
                     return new ScopedServiceFactory(this, serviceLifetimeManager, implementationType);
-                case ServiceImplementationLifetime.Any:
-                    if (HasScopedDependencies(implementationType))
-                    {
-                        return new ScopedServiceFactory(this, serviceLifetimeManager, implementationType);
-                    }
-                    else
-                    {
-                        return new SingletonServiceFactory(this, serviceLifetimeManager, implementationType);
-                    }
                 default:
-                    throw new NotSupportedException($"Lifetime '{implementationType.Lifetime}' is not supported");
+                    throw new LimanException($"Effective lifetime '{implementationType.Lifetime}' is not supported");
             }
         }
 

@@ -10,5 +10,7 @@ namespace Liman
         void Add(Type implementationType, ServiceImplementationLifetime lifetime, IEnumerable<Type> serviceTypes, Delegate? constructor = null);
         void Add(Assembly assembly, params Type[] exceptions);
         void ApplyTo(IServiceCollection classicServiceCollection);
+        void Validate(Type serviceType);
+        void ValidateAll();
     }
 }

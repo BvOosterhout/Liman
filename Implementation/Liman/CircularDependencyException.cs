@@ -5,12 +5,12 @@ namespace Liman
 {
     internal class CircularDependencyException : Exception
     {
-        public CircularDependencyException(List<LimanServiceImplementation> creationsInProgress, LimanServiceImplementation circularService)
+        public CircularDependencyException(IEnumerable<LimanServiceImplementation> creationsInProgress, LimanServiceImplementation circularService)
             : base(CreateMessage(creationsInProgress, circularService))
         {
         }
 
-        private static string CreateMessage(List<LimanServiceImplementation> creationsInProgress, LimanServiceImplementation circularService)
+        private static string CreateMessage(IEnumerable<LimanServiceImplementation> creationsInProgress, LimanServiceImplementation circularService)
         {
             var userService = creationsInProgress.Last();
             var builder = new StringBuilder();

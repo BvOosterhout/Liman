@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Liman.Implementation.ServiceFactories;
+using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -151,14 +152,172 @@ namespace Liman.Implementation.ServiceImplementations
             }
         }
 
-        public void ApplyTo(IServiceCollection serviceCollection)
-        {
-            throw new NotImplementedException();
-        }
-
         public IEnumerable<LimanServiceImplementation> GetApplicationImplementations()
         {
             return applicationServices;
+        }
+
+        public void ApplyTo(IServiceCollection serviceCollection)
+        {
+            foreach (var keyValue in implementationsByService)
+            {
+                var serviceType = keyValue.Key;
+                var implementations = keyValue.Value;
+
+                foreach (var implementation in implementations)
+                {
+                    ApplyTo(serviceCollection, serviceType, implementation);
+                }
+            }
+        }
+
+        private void ApplyTo(IServiceCollection serviceCollection, Type serviceType, LimanServiceImplementation implementation)
+        {
+            if (implementation.CustomParameters.Count > 0) return;
+
+            if (implementation.FactoryMethod.IsConstructor)
+            {
+                serviceCollection.Add(new ServiceDescriptor(serviceType, implementation.Type, ToLifetime(implementation)));
+            }
+            else
+            {
+                serviceCollection.Add(new ServiceDescriptor(serviceType, serviceProvider => CreateClassicInstance(serviceProvider, implementation), ToLifetime(implementation)));
+            }
+        }
+
+        public ServiceImplementationLifetime GetEffectiveLifetime(LimanServiceImplementation implementation)
+        {
+            switch (implementation.Lifetime)
+            {
+                case ServiceImplementationLifetime.Any:
+                    if (HasScopedDependencies(implementation))
+                    {
+                        return ServiceImplementationLifetime.Scoped;
+                    }
+                    else
+                    {
+                        return ServiceImplementationLifetime.Singleton;
+                    }
+                default:
+                    return implementation.Lifetime;
+            }
+        }
+
+        public void ValidateAll()
+        {
+            foreach (var implementation in implementationByType.Values)
+            {
+                Validate(implementation);
+            }
+        }
+
+        public void Validate(Type serviceType)
+        {
+            if (TryGet(serviceType, out var implementation))
+            {
+                Validate(implementation);
+            }
+            else
+            {
+                throw new LimanException($"Service '{serviceType}' is not registered.");
+            }
+        }
+
+        public void Validate(LimanServiceImplementation implementation)
+        {
+            switch (implementation.Lifetime)
+            {
+                case ServiceImplementationLifetime.Singleton:
+                case ServiceImplementationLifetime.Application:
+                    if (HasScopedDependencies(implementation))
+                    {
+                        var scopedDependencies = string.Join(", ", GetScopedDependencies(implementation));
+
+                        throw new LimanException($"Cannot instantiate singleton '{implementation}' because it has scoped dependencies. ({scopedDependencies})");
+                    }
+                    break;
+            }
+
+            ValidateDependencies(implementation);
+        }
+
+        private object CreateClassicInstance(IServiceProvider serviceProvider, LimanServiceImplementation implementation)
+        {
+            var arguments = implementation.UsedServices
+                .Select(x => serviceProvider.GetRequiredService(x))
+                .ToArray();
+
+            return implementation.CreateInstance(arguments);
+        }
+
+        private void ValidateDependencies(LimanServiceImplementation implementation, Stack<LimanServiceImplementation>? users = null)
+        {
+            if (users != null)
+            {
+                if (users.Contains(implementation))
+                {
+                    throw new CircularDependencyException(users, implementation);
+                }
+            }
+            else
+            {
+                users = new();
+            }
+
+            users.Push(implementation);
+
+            foreach (var dependency in implementation.UsedServices)
+            {
+                if (!TryGet(dependency, out var dependencyImplementation))
+                {
+                    throw new LimanException($"Service '{implementation}' depends on '{dependency}' which is not registered.");
+                }
+
+                ValidateDependencies(dependencyImplementation, users);
+            }
+
+            if (users.Pop() != implementation) throw new InvalidOperationException();
+        }
+
+        private bool HasScopedDependencies(LimanServiceImplementation implementationType)
+        {
+            foreach (var usedServiceType in implementationType.UsedServices)
+            {
+                if (TryGet(usedServiceType, out var usedImplementationType))
+                {
+                    switch (usedImplementationType.Lifetime)
+                    {
+                        case ServiceImplementationLifetime.Scoped: return true;
+                        case ServiceImplementationLifetime.Any:
+                        case ServiceImplementationLifetime.Transient:
+                            if (HasScopedDependencies(usedImplementationType)) return true;
+                            break;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private IEnumerable<LimanServiceImplementation> GetScopedDependencies(LimanServiceImplementation implementationType)
+        {
+            foreach (var usedServiceType in implementationType.UsedServices)
+            {
+                if (TryGet(usedServiceType, out var usedImplementationType))
+                {
+                    switch (usedImplementationType.Lifetime)
+                    {
+                        case ServiceImplementationLifetime.Scoped: yield return usedImplementationType; break;
+                        case ServiceImplementationLifetime.Any:
+                        case ServiceImplementationLifetime.Transient:
+                            foreach (var decendentScopedImplementationType in GetScopedDependencies(usedImplementationType))
+                            {
+                                yield return decendentScopedImplementationType;
+                            }
+                            break;
+                    }
+                }
+            }
         }
 
         private bool TryAdd(Type implementationType)
@@ -201,6 +360,23 @@ namespace Liman.Implementation.ServiceImplementations
                 case ServiceLifetime.Scoped: return ServiceImplementationLifetime.Scoped;
                 case ServiceLifetime.Transient: return ServiceImplementationLifetime.Transient;
                 default: throw new NotSupportedException($"Classic service lifetime '{classicLifetime}' is not supported");
+            }
+        }
+
+        private ServiceLifetime ToLifetime(LimanServiceImplementation implementation)
+        {
+            var effectiveLifetime = GetEffectiveLifetime(implementation);
+
+            switch (effectiveLifetime)
+            {
+                case ServiceImplementationLifetime.Singleton:
+                case ServiceImplementationLifetime.Application:
+                    return ServiceLifetime.Singleton;
+                case ServiceImplementationLifetime.Scoped:
+                    return ServiceLifetime.Scoped;
+                case ServiceImplementationLifetime.Transient:
+                    return ServiceLifetime.Transient;
+                default: throw new InvalidOperationException($"Lifetime '{effectiveLifetime}' cannot be an effective service lifetime");
             }
         }
 

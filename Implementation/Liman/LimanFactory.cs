@@ -13,12 +13,12 @@ namespace Liman
             return new LimanServiceImplementationRepository();
         }
 
-        public static ILimanServiceProvider CreateServiceProvider(ILimanServiceCollection serviceCollection)
+        public static ILimanServiceProvider CreateServiceProvider(ILimanServiceCollection serviceCollection, bool validate = true)
         {
             if (serviceCollection is LimanServiceImplementationRepository implementationRepository)
             {
                 var lifetimeManager = new LimanServiceLifetimeManager(implementationRepository);
-                var serviceFactory = new ServiceFactoryProvider(implementationRepository, lifetimeManager);
+                var serviceFactory = new ServiceFactoryProvider(implementationRepository, lifetimeManager, validate);
                 var serviceProvider = new LimanServiceProvider(serviceFactory, lifetimeManager, scope: null);
                 return serviceProvider;
             }
