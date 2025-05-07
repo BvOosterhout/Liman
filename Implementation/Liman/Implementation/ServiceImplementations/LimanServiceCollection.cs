@@ -7,12 +7,17 @@ using System.Runtime.CompilerServices;
 namespace Liman.Implementation.ServiceImplementations
 {
     [ServiceImplementation(ServiceImplementationLifetime.Singleton)]
-    internal class LimanServiceImplementationRepository : ILimanServiceImplementationRepository
+    internal class LimanServiceCollection : ILimanServiceCollection
     {
         private Dictionary<Type, List<LimanServiceImplementation>> implementationsByService = new();
         private Dictionary<Type, List<LimanServiceImplementation>> genericImplementationsByService = new();
         private Dictionary<Type, LimanServiceImplementation> implementationByType = new();
         private List<LimanServiceImplementation> applicationServices = new();
+
+        public LimanServiceCollection()
+        {
+            Add(Assembly.GetExecutingAssembly());
+        }
 
         public void Add(Type implementationType)
         {
@@ -106,7 +111,7 @@ namespace Liman.Implementation.ServiceImplementations
             }
         }
 
-        public bool TryGet(Type serviceType, [MaybeNullWhen(false)] out LimanServiceImplementation serviceImplementation)
+        public bool TryGetSingle(Type serviceType, [MaybeNullWhen(false)] out ILimanServiceImplementation serviceImplementation)
         {
             var implementations = GetAll(serviceType).ToArray();
 
@@ -127,7 +132,7 @@ namespace Liman.Implementation.ServiceImplementations
             }
         }
 
-        public IEnumerable<LimanServiceImplementation> GetAll(Type serviceType)
+        public IEnumerable<ILimanServiceImplementation> GetAll(Type serviceType)
         {
             if (implementationsByService.TryGetValue(serviceType, out var implementations))
             {
@@ -153,7 +158,7 @@ namespace Liman.Implementation.ServiceImplementations
             }
         }
 
-        public IEnumerable<LimanServiceImplementation> GetApplicationImplementations()
+        public IEnumerable<ILimanServiceImplementation> GetApplicationImplementations()
         {
             return applicationServices;
         }
@@ -172,21 +177,7 @@ namespace Liman.Implementation.ServiceImplementations
             }
         }
 
-        private void ApplyTo(IServiceCollection serviceCollection, Type serviceType, LimanServiceImplementation implementation)
-        {
-            if (implementation.CustomParameters.Count > 0) return;
-
-            if (implementation.FactoryMethod.IsConstructor)
-            {
-                serviceCollection.Add(new ServiceDescriptor(serviceType, implementation.Type, ToLifetime(implementation)));
-            }
-            else
-            {
-                serviceCollection.Add(new ServiceDescriptor(serviceType, serviceProvider => CreateClassicInstance(serviceProvider, implementation), ToLifetime(implementation)));
-            }
-        }
-
-        public ServiceImplementationLifetime GetEffectiveLifetime(LimanServiceImplementation implementation)
+        public ServiceImplementationLifetime GetEffectiveLifetime(ILimanServiceImplementation implementation)
         {
             switch (implementation.Lifetime)
             {
@@ -214,7 +205,7 @@ namespace Liman.Implementation.ServiceImplementations
 
         public void Validate(Type serviceType)
         {
-            if (TryGet(serviceType, out var implementation))
+            if (TryGetSingle(serviceType, out var implementation))
             {
                 Validate(implementation);
             }
@@ -224,7 +215,7 @@ namespace Liman.Implementation.ServiceImplementations
             }
         }
 
-        public void Validate(LimanServiceImplementation implementation)
+        public void Validate(ILimanServiceImplementation implementation)
         {
             switch (implementation.Lifetime)
             {
@@ -242,16 +233,31 @@ namespace Liman.Implementation.ServiceImplementations
             ValidateDependencies(implementation);
         }
 
+
+        private void ApplyTo(IServiceCollection serviceCollection, Type serviceType, LimanServiceImplementation implementation)
+        {
+            if (implementation.CustomParameters.Count > 0) return;
+
+            if (implementation.FactoryMethod.IsConstructor)
+            {
+                serviceCollection.Add(new ServiceDescriptor(serviceType, implementation.Type, ToLifetime(implementation)));
+            }
+            else
+            {
+                serviceCollection.Add(new ServiceDescriptor(serviceType, serviceProvider => CreateClassicInstance(serviceProvider, implementation), ToLifetime(implementation)));
+            }
+        }
+
         private object CreateClassicInstance(IServiceProvider serviceProvider, LimanServiceImplementation implementation)
         {
-            var arguments = implementation.UsedServices
+            var arguments = implementation.ServiceParameters
                 .Select(x => serviceProvider.GetRequiredService(x))
                 .ToArray();
 
             return implementation.CreateInstance(arguments);
         }
 
-        private void ValidateDependencies(LimanServiceImplementation implementation, Stack<LimanServiceImplementation>? users = null)
+        private void ValidateDependencies(ILimanServiceImplementation implementation, Stack<ILimanServiceImplementation>? users = null)
         {
             if (users != null)
             {
@@ -267,9 +273,9 @@ namespace Liman.Implementation.ServiceImplementations
 
             users.Push(implementation);
 
-            foreach (var dependency in implementation.UsedServices)
+            foreach (var dependency in implementation.ServiceParameters)
             {
-                if (!TryGet(dependency, out var dependencyImplementation))
+                if (!TryGetSingle(dependency, out var dependencyImplementation))
                 {
                     throw new LimanException($"Service '{implementation}' depends on '{dependency}' which is not registered.");
                 }
@@ -280,11 +286,11 @@ namespace Liman.Implementation.ServiceImplementations
             if (users.Pop() != implementation) throw new InvalidOperationException();
         }
 
-        private bool HasScopedDependencies(LimanServiceImplementation implementationType)
+        private bool HasScopedDependencies(ILimanServiceImplementation implementationType)
         {
-            foreach (var usedServiceType in implementationType.UsedServices)
+            foreach (var usedServiceType in implementationType.ServiceParameters)
             {
-                if (TryGet(usedServiceType, out var usedImplementationType))
+                if (TryGetSingle(usedServiceType, out var usedImplementationType))
                 {
                     switch (usedImplementationType.Lifetime)
                     {
@@ -300,11 +306,11 @@ namespace Liman.Implementation.ServiceImplementations
             return false;
         }
 
-        private IEnumerable<LimanServiceImplementation> GetScopedDependencies(LimanServiceImplementation implementationType)
+        private IEnumerable<ILimanServiceImplementation> GetScopedDependencies(ILimanServiceImplementation implementationType)
         {
-            foreach (var usedServiceType in implementationType.UsedServices)
+            foreach (var usedServiceType in implementationType.ServiceParameters)
             {
-                if (TryGet(usedServiceType, out var usedImplementationType))
+                if (TryGetSingle(usedServiceType, out var usedImplementationType))
                 {
                     switch (usedImplementationType.Lifetime)
                     {

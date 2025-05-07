@@ -9,13 +9,13 @@ namespace Liman.Implementation.ServiceFactories
 
         public ServiceFactoryBase(
             IServiceFactoryProvider serviceFactoryProvider,
-            LimanServiceImplementation implementationType)
+            ILimanServiceImplementation implementationType)
         {
             this.serviceFactoryProvider = serviceFactoryProvider;
             ImplementationType = implementationType;
         }
 
-        public LimanServiceImplementation ImplementationType { get; }
+        public ILimanServiceImplementation ImplementationType { get; }
         public abstract ServiceImplementationLifetime Lifetime { get; }
         public abstract object? Get(IServiceScope? scope, object?[] customArguments);
 

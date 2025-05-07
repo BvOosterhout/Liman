@@ -7,9 +7,9 @@ namespace Liman.Implementation.ServiceFactories
     internal interface IServiceFactoryProvider
     {
         IServiceFactory Get(Type serviceType);
-        IServiceFactory[] GetUsedServices(LimanServiceImplementation parentImplementation);
-        void FinishCreation(LimanServiceImplementation serviceImplementation, object result);
-        void PrepareCreation(LimanServiceImplementation serviceImplementation);
+        IServiceFactory[] GetUsedServices(ILimanServiceImplementation parentImplementation);
+        void FinishCreation(ILimanServiceImplementation serviceImplementation, object result);
+        void PrepareCreation(ILimanServiceImplementation serviceImplementation);
         IEnumerable<IServiceFactory> GetApplicationServices();
     }
 }

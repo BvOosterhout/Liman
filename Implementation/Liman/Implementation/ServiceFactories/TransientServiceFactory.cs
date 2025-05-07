@@ -12,7 +12,7 @@ namespace Liman.Implementation.ServiceFactories
         public TransientServiceFactory(
             IServiceFactoryProvider serviceFactoryProvider,
             ILimanServiceLifetimeManager serviceLifetimeManager,
-            LimanServiceImplementation implementationType)
+            ILimanServiceImplementation implementationType)
             : base(serviceFactoryProvider, implementationType)
         {
             this.serviceLifetimeManager = serviceLifetimeManager;

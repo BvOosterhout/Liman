@@ -8,10 +8,10 @@ namespace Liman.Implementation.Lazies
     internal class LazyImplementationCollection<T> : ILazyImplementationCollection<T>
     {
         private readonly IServiceProvider serviceProvider;
-        private readonly ILimanServiceImplementationRepository serviceCollection;
+        private readonly ILimanServiceCollection serviceCollection;
         private List<T>? implementations;
 
-        public LazyImplementationCollection(IServiceProvider serviceProvider, ILimanServiceImplementationRepository serviceCollection)
+        public LazyImplementationCollection(IServiceProvider serviceProvider, ILimanServiceCollection serviceCollection)
         {
             this.serviceProvider = serviceProvider;
             this.serviceCollection = serviceCollection;

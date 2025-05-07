@@ -1,25 +1,29 @@
 ﻿using Liman.Implementation.Lifetimes;
-using Liman.Implementation.ServiceImplementations;
 
 namespace Liman.Implementation.ServiceFactories
 {
+    [ServiceImplementation(ServiceImplementationLifetime.Singleton)]
     internal class ServiceFactoryProvider : IServiceFactoryProvider
     {
         private readonly Dictionary<Type, IServiceFactory> factoryByServiceType = new();
-        private readonly ILimanServiceImplementationRepository serviceImplementationRepository;
-        private readonly ILimanServiceLifetimeManager serviceLifetimeManager;
+        private readonly ILimanServiceCollection serviceImplementationRepository;
+        private readonly ILimanServiceLifetimeManager serviceCollection;
         private readonly bool validate;
-        private readonly List<LimanServiceImplementation> creationsInProgress = new();
+        private readonly List<ILimanServiceImplementation> creationsInProgress = new();
         private readonly List<IInitializable> uninitialized = new();
 
         public ServiceFactoryProvider(
-            ILimanServiceImplementationRepository serviceImplementationRepository,
+            ILimanServiceCollection serviceCollection,
             ILimanServiceLifetimeManager serviceLifetimeManager,
-            bool validate)
+            [NoInjection] bool validate)
         {
-            this.serviceImplementationRepository = serviceImplementationRepository;
-            this.serviceLifetimeManager = serviceLifetimeManager;
+            this.serviceImplementationRepository = serviceCollection;
+            this.serviceCollection = serviceLifetimeManager;
             this.validate = validate;
+
+            factoryByServiceType.Add(typeof(ServiceFactoryProvider), new ConstantFactory(this));
+            factoryByServiceType.Add(serviceCollection.GetType(), new ConstantFactory(serviceCollection));
+            factoryByServiceType.Add(serviceLifetimeManager.GetType(), new ConstantFactory(serviceLifetimeManager));
         }
 
         public IServiceFactory Get(Type serviceType)
@@ -29,9 +33,20 @@ namespace Liman.Implementation.ServiceFactories
                 return factory;
             }
 
-            if (serviceImplementationRepository.TryGet(serviceType, out var implementationType))
+            if (serviceImplementationRepository.TryGetSingle(serviceType, out var implementationType))
             {
-                return Create(implementationType);
+                if (factoryByServiceType.TryGetValue(implementationType.Type, out factory))
+                {
+                    return factory;
+                }
+
+                factory = Create(implementationType);
+                factoryByServiceType.Add(serviceType, factory);
+                if (serviceType != implementationType.Type)
+                {
+                    factoryByServiceType.Add(implementationType.Type, factory);
+                }
+                return factory;
             }
             else
             {
@@ -49,13 +64,13 @@ namespace Liman.Implementation.ServiceFactories
             }
         }
 
-        public IServiceFactory[] GetUsedServices(LimanServiceImplementation parentImplementation)
+        public IServiceFactory[] GetUsedServices(ILimanServiceImplementation parentImplementation)
         {
-            var factories = new IServiceFactory[parentImplementation.UsedServices.Count];
+            var factories = new IServiceFactory[parentImplementation.ServiceParameters.Count];
 
             int index = 0;
 
-            foreach (var serviceType in parentImplementation.UsedServices)
+            foreach (var serviceType in parentImplementation.ServiceParameters)
             {
                 IServiceFactory factory;
 
@@ -75,7 +90,7 @@ namespace Liman.Implementation.ServiceFactories
             return factories;
         }
 
-        public void PrepareCreation(LimanServiceImplementation serviceImplementation)
+        public void PrepareCreation(ILimanServiceImplementation serviceImplementation)
         {
             lock (creationsInProgress)
             {
@@ -88,7 +103,7 @@ namespace Liman.Implementation.ServiceFactories
             }
         }
 
-        public void FinishCreation(LimanServiceImplementation serviceImplementation, object result)
+        public void FinishCreation(ILimanServiceImplementation serviceImplementation, object result)
         {
             lock (creationsInProgress)
             {
@@ -107,7 +122,7 @@ namespace Liman.Implementation.ServiceFactories
             InitializeAll();
         }
 
-        private IServiceFactory Create(LimanServiceImplementation implementationType)
+        private IServiceFactory Create(ILimanServiceImplementation implementationType)
         {
             if (validate)
             {
@@ -120,11 +135,11 @@ namespace Liman.Implementation.ServiceFactories
             {
                 case ServiceImplementationLifetime.Singleton:
                 case ServiceImplementationLifetime.Application:
-                    return new SingletonServiceFactory(this, serviceLifetimeManager, implementationType);
+                    return new SingletonServiceFactory(this, serviceCollection, implementationType);
                 case ServiceImplementationLifetime.Transient:
-                    return new TransientServiceFactory(this, serviceLifetimeManager, implementationType);
+                    return new TransientServiceFactory(this, serviceCollection, implementationType);
                 case ServiceImplementationLifetime.Scoped:
-                    return new ScopedServiceFactory(this, serviceLifetimeManager, implementationType);
+                    return new ScopedServiceFactory(this, serviceCollection, implementationType);
                 default:
                     throw new InvalidOperationException();
             }

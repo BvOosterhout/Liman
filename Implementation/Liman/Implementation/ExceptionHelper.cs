@@ -9,7 +9,7 @@ namespace Liman.Implementation
 {
     internal static class ExceptionHelper
     {
-        public static string CreateCircularDependencyMessage(IEnumerable<LimanServiceImplementation> creationsInProgress, LimanServiceImplementation circularService)
+        public static string CreateCircularDependencyMessage(IEnumerable<ILimanServiceImplementation> creationsInProgress, ILimanServiceImplementation circularService)
         {
             var userService = creationsInProgress.Last();
             var builder = new StringBuilder();

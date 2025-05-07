@@ -2,7 +2,7 @@
 
 namespace Liman.Implementation.ServiceImplementations
 {
-    internal class LimanServiceImplementation
+    internal class LimanServiceImplementation : ILimanServiceImplementation
     {
         public LimanServiceImplementation(Type type, ServiceImplementationLifetime lifetime, Delegate? factoryMethod)
         {
@@ -33,13 +33,13 @@ namespace Liman.Implementation.ServiceImplementations
                 }
             }
 
-            UsedServices = usedServices.AsReadOnly();
+            ServiceParameters = usedServices.AsReadOnly();
             CustomParameters = customParameters;
         }
 
         public Type Type { get; }
         public ServiceImplementationLifetime Lifetime { get; }
-        public IReadOnlyList<Type> UsedServices { get; }
+        public IReadOnlyList<Type> ServiceParameters { get; }
         public IReadOnlyList<Type> CustomParameters { get; }
         public MethodBase FactoryMethod { get; }
         public object? FactoryMethodInstance { get; }

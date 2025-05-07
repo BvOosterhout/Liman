@@ -16,7 +16,7 @@ namespace Liman.Implementation.ServiceFactories
         public ScopedServiceFactory(
             IServiceFactoryProvider serviceFactoryProvider,
             ILimanServiceLifetimeManager serviceLifetimeManager,
-            LimanServiceImplementation implementationType)
+            ILimanServiceImplementation implementationType)
             : base(serviceFactoryProvider, implementationType)
         {
             this.serviceLifetimeManager = serviceLifetimeManager;
