@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace Liman.Implementation.ServiceImplementations
+namespace Liman.Implementation.ServiceCollections
 {
     internal class LimanServiceImplementation : ILimanServiceImplementation
     {

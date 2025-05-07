@@ -1,7 +1,7 @@
 ﻿using Liman.Implementation;
 using Liman.Implementation.Lifetimes;
+using Liman.Implementation.ServiceCollections;
 using Liman.Implementation.ServiceFactories;
-using Liman.Implementation.ServiceImplementations;
 using Liman.Implementation.ServiceProviders;
 
 namespace Liman

@@ -1,6 +1,5 @@
 ﻿using Liman.Implementation.Lifetimes;
 using Liman.Implementation.Scopes;
-using Liman.Implementation.ServiceImplementations;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Liman.Implementation.ServiceFactories

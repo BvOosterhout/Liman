@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Liman.Implementation.ServiceProviders
 {
-    [ServiceImplementation(ServiceImplementationLifetime.Singleton)]
+    [ServiceImplementation(ServiceImplementationLifetime.Transient)]
     internal class LimanServiceProvider : ILimanServiceProvider, IDependency
     {
         private readonly IServiceFactoryProvider serviceFactoryProvider;

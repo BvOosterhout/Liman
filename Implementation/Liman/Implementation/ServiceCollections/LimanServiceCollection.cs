@@ -1,10 +1,10 @@
-﻿using Liman.Implementation.ServiceFactories;
+﻿using Liman;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-namespace Liman.Implementation.ServiceImplementations
+namespace Liman.Implementation.ServiceCollections
 {
     [ServiceImplementation(ServiceImplementationLifetime.Singleton)]
     internal class LimanServiceCollection : ILimanServiceCollection
@@ -151,7 +151,13 @@ namespace Liman.Implementation.ServiceImplementations
                     foreach (var genericImplementation in genericImplementations)
                     {
                         var implementationType = genericImplementation.Type.MakeGenericType(serviceType.GetGenericArguments());
-                        var implementation = new LimanServiceImplementation(implementationType, genericImplementation.Lifetime, null);
+
+                        if (!implementationByType.TryGetValue(implementationType, out var implementation))
+                        {
+                            implementation = new LimanServiceImplementation(implementationType, genericImplementation.Lifetime, null);
+                            implementationByType.Add(implementationType, implementation);
+                        }
+
                         yield return implementation;
                     }
                 }

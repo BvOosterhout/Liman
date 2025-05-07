@@ -1,10 +1,9 @@
-﻿using Liman.Implementation.ServiceImplementations;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using System.Collections;
 
 namespace Liman.Implementation.Lazies
 {
-    [ServiceImplementation(ServiceImplementationLifetime.Transient)]
+    [ServiceImplementation(ServiceImplementationLifetime.Transient, typeof(LazyImplementationCollection<>), typeof(ILazyImplementationCollection<>))]
     internal class LazyImplementationCollection<T> : ILazyImplementationCollection<T>
     {
         private readonly IServiceProvider serviceProvider;

@@ -1,4 +1,6 @@
 ﻿using Liman.Implementation.Lifetimes;
+using Liman.Implementation.Scopes;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Liman.Implementation.ServiceFactories
 {
@@ -24,6 +26,7 @@ namespace Liman.Implementation.ServiceFactories
             factoryByServiceType.Add(typeof(ServiceFactoryProvider), new ConstantFactory(this));
             factoryByServiceType.Add(serviceCollection.GetType(), new ConstantFactory(serviceCollection));
             factoryByServiceType.Add(serviceLifetimeManager.GetType(), new ConstantFactory(serviceLifetimeManager));
+            factoryByServiceType.Add(typeof(LimanServiceScope), new ServiceScopeFactory());
         }
 
         public IServiceFactory Get(Type serviceType)

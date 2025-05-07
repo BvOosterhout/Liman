@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Liman.Implementation.Scopes
 {
+    [ServiceImplementation(ServiceImplementationLifetime.Transient)]
     internal class LimanServiceScope : IServiceScope, IDisposable
     {
         private List<ScopedServiceFactory> registeredFactories = new();

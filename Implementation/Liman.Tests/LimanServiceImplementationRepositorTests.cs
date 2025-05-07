@@ -1,10 +1,4 @@
-﻿using FluentAssertions;
-using Liman.Implementation.ServiceImplementations;
-using Liman.Tests.AssemblyInject;
-using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
-
-namespace Liman.Tests
+﻿namespace Liman.Tests
 {
     /*public class LimanServiceImplementationRepositoryTests
     {
@@ -13,37 +7,6 @@ namespace Liman.Tests
         public LimanServiceImplementationRepositoryTests()
         {
             repository = new LimanServiceImplementationRepository();
-        }
-
-
-        [Fact]
-        public void Add_WithAssembly_AddsAllValidTypes()
-        {
-            // Arrange
-            var assembly = Assembly.GetExecutingAssembly();
-
-            // Act
-            repository.Add(assembly);
-
-            // Assert
-            repository.GetAll(typeof(IAssemblyService)).Should().ContainSingle()
-                .Which.Type.Should().Be(typeof(AssemblyServiceImplementation));
-        }
-
-        [Fact]
-        public void GetAll_WithExistingServiceType_ReturnsAllImplementations()
-        {
-            // Arrange
-            repository.Add(typeof(MyServiceImplementation), ServiceImplementationLifetime.Any);
-            repository.Add(typeof(MyAlternateServiceImplementation), ServiceImplementationLifetime.Any);
-
-            // Act
-            var implementations = repository.GetAll(typeof(ITestService)).ToList();
-
-            // Assert
-            implementations.Should().HaveCount(2);
-            implementations.Should().ContainSingle(x => x.Type == typeof(MyServiceImplementation));
-            implementations.Should().ContainSingle(x => x.Type == typeof(MyAlternateServiceImplementation));
         }
 
         [Fact]
