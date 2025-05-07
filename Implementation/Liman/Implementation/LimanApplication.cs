@@ -9,30 +9,24 @@ namespace Liman.Implementation
 {
     internal class LimanApplication : ILimanApplication
     {
-        private readonly ILimanServiceProvider serviceProvider;
+        private readonly LimanServiceProvider serviceProvider;
         private IRunnable? runnable;
 
         public LimanApplication(ILimanServiceProvider serviceProvider)
         {
-            this.serviceProvider = serviceProvider;
+            this.serviceProvider = serviceProvider as LimanServiceProvider
+                ?? throw new InvalidOperationException();
         }
 
         public void Run()
         {
-            if (serviceProvider is LimanServiceProvider limanServiceProvider)
-            {
-                var applicationServices = limanServiceProvider.GetApplicationServices().ToList();
-                var runnables = applicationServices.OfType<IRunnable>().ToList();
+            var applicationServices = serviceProvider.GetApplicationServices().ToList();
+            var runnables = applicationServices.OfType<IRunnable>().ToList();
 
-                if (runnables.Count > 1) throw new Exception("More than one runnable service found");
+            if (runnables.Count > 1) throw new LimanException("More than one IRunnable service found");
 
-                runnable = runnables.FirstOrDefault();
-                runnable?.Run();
-            }
-            else
-            {
-                throw new NotSupportedException();
-            }
+            runnable = runnables.FirstOrDefault();
+            runnable?.Run();
         }
 
         public void Stop()

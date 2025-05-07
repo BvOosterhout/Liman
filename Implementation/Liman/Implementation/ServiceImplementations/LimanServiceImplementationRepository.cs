@@ -18,7 +18,7 @@ namespace Liman.Implementation.ServiceImplementations
         {
             if (!TryAdd(implementationType))
             {
-                throw new ArgumentException($"Type '{implementationType.GetReadableName()}' is missing {nameof(ServiceImplementationAttribute)}");
+                throw new LimanException($"Type '{implementationType.GetReadableName()}' is missing {nameof(ServiceImplementationAttribute)}");
             }
         }
 
@@ -60,7 +60,7 @@ namespace Liman.Implementation.ServiceImplementations
         {
             if (service.IsKeyedService)
             {
-                throw new NotSupportedException("Keyed services are not supported.");
+                throw new LimanException($"Keyed service '{service.ServiceType.GetReadableName()}' is not supported.");
             }
 
             var implementationType = service.ImplementationType ?? service.ServiceType;
@@ -76,12 +76,12 @@ namespace Liman.Implementation.ServiceImplementations
 
             if (implementationType.IsGenericTypeDefinition)
             {
-                if (!service.ServiceType.IsGenericTypeDefinition) throw new ArgumentException();
+                if (!service.ServiceType.IsGenericTypeDefinition) throw new LimanException($"Service implementation '{implementation}' cannot implement service '{service.ServiceType.GetReadableName()}', because the service is not generic");
                 genericImplementationsByService.AddItem(service.ServiceType, implementation);
             }
             else
             {
-                if (service.ServiceType.IsGenericTypeDefinition) throw new ArgumentException();
+                if (service.ServiceType.IsGenericTypeDefinition) throw new LimanException($"Service implementation '{implementation}' cannot implement service '{service.ServiceType.GetReadableName()}', because the service is generic");
                 implementationsByService.AddItem(service.ServiceType, implementation);
             }
         }
@@ -122,7 +122,8 @@ namespace Liman.Implementation.ServiceImplementations
             }
             else
             {
-                throw new ArgumentException();
+                var implementationsText = string.Join(", ", implementations.Select(x => x.ToString()));
+                throw new LimanException($"Service '{serviceType.GetReadableName()}' could not be injected, because multiple implementations were found: {implementationsText}");
             }
         }
 
@@ -256,7 +257,7 @@ namespace Liman.Implementation.ServiceImplementations
             {
                 if (users.Contains(implementation))
                 {
-                    throw new CircularDependencyException(users, implementation);
+                    throw new LimanException(ExceptionHelper.CreateCircularDependencyMessage(users, implementation));
                 }
             }
             else
@@ -359,7 +360,7 @@ namespace Liman.Implementation.ServiceImplementations
                 case ServiceLifetime.Singleton: return ServiceImplementationLifetime.Singleton;
                 case ServiceLifetime.Scoped: return ServiceImplementationLifetime.Scoped;
                 case ServiceLifetime.Transient: return ServiceImplementationLifetime.Transient;
-                default: throw new NotSupportedException($"Classic service lifetime '{classicLifetime}' is not supported");
+                default: throw new LimanException($"Classic service lifetime '{classicLifetime}' is not supported");
             }
         }
 
@@ -386,7 +387,8 @@ namespace Liman.Implementation.ServiceImplementations
 
             if (implementation.Lifetime == ServiceImplementationLifetime.Application)
             {
-                if (implementation.Type.IsGenericTypeDefinition) throw new ArgumentException();
+                if (implementation.Type.IsGenericTypeDefinition)
+                    throw new LimanException($"Service implementation '{implementation}' cannot have lifetime '{implementation.Lifetime}', because it's a generic type.");
                 applicationServices.Add(implementation);
             }
 
@@ -394,7 +396,7 @@ namespace Liman.Implementation.ServiceImplementations
             {
                 foreach (var serviceType in serviceTypes)
                 {
-                    if (!serviceType.IsGenericTypeDefinition) throw new ArgumentException();
+                    if (!serviceType.IsGenericTypeDefinition) throw new LimanException($"Service implementation '{implementation}' cannot implement service '{serviceType.GetReadableName()}', because the service is not generic");
                     genericImplementationsByService.AddItem(serviceType, implementation);
                 }
             }
@@ -402,7 +404,7 @@ namespace Liman.Implementation.ServiceImplementations
             {
                 foreach (var serviceType in serviceTypes)
                 {
-                    if (serviceType.IsGenericTypeDefinition) throw new ArgumentException();
+                    if (serviceType.IsGenericTypeDefinition) throw new LimanException($"Service implementation '{implementation}' cannot implement service '{serviceType.GetReadableName()}', because the service is generic");
                     implementationsByService.AddItem(serviceType, implementation);
                 }
             }

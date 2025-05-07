@@ -29,7 +29,7 @@ namespace Liman.Implementation.ServiceImplementations
                 }
                 else
                 {
-                    throw new ArgumentException();
+                    throw new LimanException($"Some 'NoInjection' parameters are NOT at the end of the constructor for service implementation '{type.GetReadableName()}'");
                 }
             }
 
@@ -53,7 +53,7 @@ namespace Liman.Implementation.ServiceImplementations
             else
             {
                 return FactoryMethod.Invoke(FactoryMethodInstance, arguments)
-                    ?? throw new NullReferenceException();
+                    ?? throw new LimanException($"Factory method '{FactoryMethod.Name}' did not return an instance.");
             }
         }
 
@@ -67,7 +67,7 @@ namespace Liman.Implementation.ServiceImplementations
             else
             {
                 return constructors.FirstOrDefault(x => x.GetParameters().Length == 0)
-                    ?? throw new ArgumentException($"Could not find a suitable constructor for type '{type}'.");
+                    ?? throw new LimanException($"Could not find a suitable constructor for service implementation '{type}'.");
             }
         }
 

@@ -24,7 +24,7 @@ namespace Liman
             }
             else
             {
-                throw new NotSupportedException();
+                throw new LimanException($"Service collection of type '{serviceCollection.GetType().GetReadableName()}' is not supported");
             }
         }
 

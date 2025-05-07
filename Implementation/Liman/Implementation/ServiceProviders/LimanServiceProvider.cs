@@ -42,7 +42,7 @@ namespace Liman.Implementation.ServiceProviders
 
         public void RegisterUser(object user)
         {
-            if (this.user != null) throw new ArgumentException("User already registered");
+            if (this.user != null) throw new LimanException("A user was already registered for ServiceProvider");
             this.user = user;
         }
 
@@ -50,7 +50,7 @@ namespace Liman.Implementation.ServiceProviders
         {
             foreach (var factory in serviceFactoryProvider.GetApplicationServices())
             {
-                yield return factory.Get(scope, []) ?? throw new NullReferenceException();
+                yield return factory.Get(scope, []) ?? throw new InvalidOperationException();
             }
         }
     }

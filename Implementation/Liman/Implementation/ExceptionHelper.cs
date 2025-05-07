@@ -1,16 +1,15 @@
 ﻿using Liman.Implementation.ServiceImplementations;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
-namespace Liman
+namespace Liman.Implementation
 {
-    internal class CircularDependencyException : Exception
+    internal static class ExceptionHelper
     {
-        public CircularDependencyException(IEnumerable<LimanServiceImplementation> creationsInProgress, LimanServiceImplementation circularService)
-            : base(CreateMessage(creationsInProgress, circularService))
-        {
-        }
-
-        private static string CreateMessage(IEnumerable<LimanServiceImplementation> creationsInProgress, LimanServiceImplementation circularService)
+        public static string CreateCircularDependencyMessage(IEnumerable<LimanServiceImplementation> creationsInProgress, LimanServiceImplementation circularService)
         {
             var userService = creationsInProgress.Last();
             var builder = new StringBuilder();

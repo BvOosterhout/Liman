@@ -58,13 +58,13 @@ namespace Liman.Implementation.ServiceFactories
             }
             else
             {
-                throw new ArgumentException();
+                throw new InvalidOperationException();
             }
         }
 
         protected override void StoreInstance(object instance, IServiceScope? scope, object?[] customArguments)
         {
-            instanceByScope.Add(scope ?? throw new ArgumentNullException(), instance);
+            instanceByScope.Add(scope ?? throw new InvalidOperationException(), instance);
         }
     }
 }

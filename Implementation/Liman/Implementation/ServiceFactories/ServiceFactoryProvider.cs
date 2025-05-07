@@ -81,7 +81,7 @@ namespace Liman.Implementation.ServiceFactories
             {
                 if (creationsInProgress.Contains(serviceImplementation))
                 {
-                    throw new CircularDependencyException(creationsInProgress, serviceImplementation);
+                    throw new LimanException(ExceptionHelper.CreateCircularDependencyMessage(creationsInProgress, serviceImplementation));
                 }
 
                 creationsInProgress.Add(serviceImplementation);
@@ -92,7 +92,7 @@ namespace Liman.Implementation.ServiceFactories
         {
             lock (creationsInProgress)
             {
-                if (creationsInProgress[creationsInProgress.Count - 1] != serviceImplementation) throw new ArgumentException();
+                if (creationsInProgress[creationsInProgress.Count - 1] != serviceImplementation) throw new InvalidOperationException();
                 creationsInProgress.RemoveAt(creationsInProgress.Count - 1);
             }
 
@@ -114,7 +114,9 @@ namespace Liman.Implementation.ServiceFactories
                 serviceImplementationRepository.Validate(implementationType);
             }
 
-            switch (implementationType.Lifetime)
+            var effectiveLifetime = serviceImplementationRepository.GetEffectiveLifetime(implementationType);
+
+            switch (effectiveLifetime)
             {
                 case ServiceImplementationLifetime.Singleton:
                 case ServiceImplementationLifetime.Application:
@@ -124,48 +126,7 @@ namespace Liman.Implementation.ServiceFactories
                 case ServiceImplementationLifetime.Scoped:
                     return new ScopedServiceFactory(this, serviceLifetimeManager, implementationType);
                 default:
-                    throw new LimanException($"Effective lifetime '{implementationType.Lifetime}' is not supported");
-            }
-        }
-
-        private bool HasScopedDependencies(LimanServiceImplementation implementationType)
-        {
-            foreach (var usedServiceType in implementationType.UsedServices)
-            {
-                if (serviceImplementationRepository.TryGet(usedServiceType, out var usedImplementationType))
-                {
-                    switch (usedImplementationType.Lifetime)
-                    {
-                        case ServiceImplementationLifetime.Scoped: return true;
-                        case ServiceImplementationLifetime.Any:
-                        case ServiceImplementationLifetime.Transient:
-                            if (HasScopedDependencies(usedImplementationType)) return true;
-                            break;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        private IEnumerable<LimanServiceImplementation> GetScopedDependencies(LimanServiceImplementation implementationType)
-        {
-            foreach (var usedServiceType in implementationType.UsedServices)
-            {
-                if (serviceImplementationRepository.TryGet(usedServiceType, out var usedImplementationType))
-                {
-                    switch (usedImplementationType.Lifetime)
-                    {
-                        case ServiceImplementationLifetime.Scoped: yield return usedImplementationType; break;
-                        case ServiceImplementationLifetime.Any:
-                        case ServiceImplementationLifetime.Transient:
-                            foreach (var decendentScopedImplementationType in GetScopedDependencies(usedImplementationType))
-                            {
-                                yield return decendentScopedImplementationType;
-                            }
-                            break;
-                    }
-                }
+                    throw new InvalidOperationException();
             }
         }
 
