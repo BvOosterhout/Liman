@@ -1,4 +1,5 @@
 ﻿using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections;
 
 namespace Liman.Tests
@@ -119,6 +120,46 @@ namespace Liman.Tests
             lifetimeLog.Should().NotContain(item => item.Action == LifetimeLogAction.Disposed && item.Service == grandParent);
             lifetimeLog.Should().ContainSingle(item => item.Action == LifetimeLogAction.Disposed && item.Service == parent);
             lifetimeLog.Should().ContainSingle(item => item.Action == LifetimeLogAction.Disposed && item.Service == child);
+        }
+
+        [Fact]
+        public void ScopedService_DisposedWhenScopeIsDeleted()
+        {
+            // Arrange
+            serviceCollection.Add(typeof(MyChildService), ServiceImplementationLifetime.Scoped);
+            var serviceProvider = LimanFactory.CreateServiceProvider(serviceCollection);
+            var scope = serviceProvider.CreateScope();
+            var scopedServiceProvider = scope.ServiceProvider;
+
+            // Act
+            var service = scopedServiceProvider.GetRequiredService<MyChildService>();
+            scope.Dispose();
+
+            // Assert
+            var lifetimeLog = serviceProvider.GetRequiredService<LifetimeLog>();
+            lifetimeLog.Should().ContainSingle(item => item.Action == LifetimeLogAction.Disposed && item.Service == service);
+        }
+
+        [Theory]
+        [InlineData(ServiceImplementationLifetime.Singleton)]
+        [InlineData(ServiceImplementationLifetime.Application)]
+        [InlineData(ServiceImplementationLifetime.Any)]
+        [InlineData(ServiceImplementationLifetime.Transient)]
+        public void NonScopedService_NotDisposedWhenScopeIsDeleted(ServiceImplementationLifetime lifetime)
+        {
+            // Arrange
+            serviceCollection.Add(typeof(MyChildService), lifetime);
+            var serviceProvider = LimanFactory.CreateServiceProvider(serviceCollection);
+            var scope = serviceProvider.CreateScope();
+            var scopedServiceProvider = scope.ServiceProvider;
+
+            // Act
+            var service = scopedServiceProvider.GetRequiredService<MyChildService>();
+            scope.Dispose();
+
+            // Assert
+            var lifetimeLog = serviceProvider.GetRequiredService<LifetimeLog>();
+            lifetimeLog.Should().NotContain(item => item.Action == LifetimeLogAction.Disposed && item.Service == service);
         }
 
         public enum LifetimeLogAction
