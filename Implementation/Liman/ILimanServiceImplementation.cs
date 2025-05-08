@@ -3,7 +3,7 @@
     public interface ILimanServiceImplementation
     {
         Type Type { get; }
-        ServiceImplementationLifetime Lifetime { get; }
+        LimanImplementationLifetime Lifetime { get; }
         IReadOnlyList<Type> ServiceParameters { get; }
         IReadOnlyList<Type> CustomParameters { get; }
 

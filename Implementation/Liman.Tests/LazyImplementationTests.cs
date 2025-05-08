@@ -15,8 +15,8 @@ namespace Liman.Tests
         public void LazyService_PreventsCircularDependency()
         {
             // Arrange
-            serviceCollection.Add(typeof(MyParentService), ServiceImplementationLifetime.Any);
-            serviceCollection.Add(typeof(MyChildService), ServiceImplementationLifetime.Any);
+            serviceCollection.Add(typeof(MyParentService), LimanImplementationLifetime.Any);
+            serviceCollection.Add(typeof(MyChildService), LimanImplementationLifetime.Any);
             var serviceProvider = LimanFactory.CreateServiceProvider(serviceCollection);
 
             // Act
@@ -32,9 +32,9 @@ namespace Liman.Tests
         public void LazyImplementationCollection_PreventsCircularDependency()
         {
             // Arrange
-            serviceCollection.Add(typeof(MyCollectionService), ServiceImplementationLifetime.Any);
-            serviceCollection.Add(typeof(MyCollectionItem1), ServiceImplementationLifetime.Any);
-            serviceCollection.Add(typeof(MyCollectionItem2), ServiceImplementationLifetime.Any);
+            serviceCollection.Add(typeof(MyCollectionService), LimanImplementationLifetime.Any);
+            serviceCollection.Add(typeof(MyCollectionItem1), LimanImplementationLifetime.Any);
+            serviceCollection.Add(typeof(MyCollectionItem2), LimanImplementationLifetime.Any);
             var serviceProvider = LimanFactory.CreateServiceProvider(serviceCollection);
 
             // Act
@@ -73,9 +73,9 @@ namespace Liman.Tests
 
         public class MyCollectionService
         {
-            private readonly ILazyImplementationCollection<IMyCollectionItem> items;
+            private readonly ILimanImplementationCollection<IMyCollectionItem> items;
 
-            public MyCollectionService(ILazyImplementationCollection<IMyCollectionItem> items)
+            public MyCollectionService(ILimanImplementationCollection<IMyCollectionItem> items)
             {
                 this.items = items;
             }

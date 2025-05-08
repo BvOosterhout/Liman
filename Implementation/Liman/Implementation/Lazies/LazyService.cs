@@ -2,7 +2,7 @@
 
 namespace Liman.Implementation.Lazies
 {
-    [ServiceImplementation(ServiceImplementationLifetime.Transient)]
+    [LimanImplementation(LimanImplementationLifetime.Transient)]
     internal class LazyService<T> : Lazy<T>
         where T : notnull
     {

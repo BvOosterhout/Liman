@@ -15,7 +15,7 @@ namespace Liman.Implementation.ServiceFactories
         }
 
         public ILimanServiceImplementation ImplementationType { get; }
-        public abstract ServiceImplementationLifetime Lifetime { get; }
+        public abstract LimanImplementationLifetime Lifetime { get; }
         public abstract object? Get(IServiceScope? scope, object?[] customArguments);
 
         public virtual void RegisterUser(object user, object dependency)

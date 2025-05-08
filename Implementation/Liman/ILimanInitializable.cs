@@ -1,6 +1,6 @@
 ﻿namespace Liman
 {
-    public interface IInitializable
+    public interface ILimanInitializable
     {
         public void Initialize();
     }

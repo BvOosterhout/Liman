@@ -17,7 +17,7 @@ namespace Liman.Implementation.ServiceFactories
             this.serviceLifetimeManager = serviceLifetimeManager;
         }
 
-        public override ServiceImplementationLifetime Lifetime { get; } = ServiceImplementationLifetime.Transient;
+        public override LimanImplementationLifetime Lifetime { get; } = LimanImplementationLifetime.Transient;
 
         protected override IServiceFactory[] GetDependencyFactories()
         {

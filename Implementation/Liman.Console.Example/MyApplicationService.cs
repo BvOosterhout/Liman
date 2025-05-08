@@ -1,7 +1,7 @@
 ﻿namespace Liman.ConsoleExample
 {
-    [ServiceImplementation(ServiceImplementationLifetime.Application)]
-    internal class MyApplicationService : IRunnable
+    [LimanImplementation(LimanImplementationLifetime.Application)]
+    internal class MyApplicationService : ILimanRunnable
     {
         private readonly IMyService service;
 

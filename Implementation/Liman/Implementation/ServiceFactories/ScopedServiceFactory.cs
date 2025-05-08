@@ -10,7 +10,7 @@ namespace Liman.Implementation.ServiceFactories
         private readonly ILimanServiceLifetimeManager serviceLifetimeManager;
         private IServiceFactory[]? dependencyFactories;
 
-        public override ServiceImplementationLifetime Lifetime { get; } = ServiceImplementationLifetime.Scoped;
+        public override LimanImplementationLifetime Lifetime { get; } = LimanImplementationLifetime.Scoped;
 
         public ScopedServiceFactory(
             IServiceFactoryProvider serviceFactoryProvider,

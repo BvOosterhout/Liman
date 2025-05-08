@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace Liman.Implementation.ServiceCollections
 {
-    [ServiceImplementation(ServiceImplementationLifetime.Singleton)]
+    [LimanImplementation(LimanImplementationLifetime.Singleton)]
     internal class LimanServiceCollection : ILimanServiceCollection
     {
         private Dictionary<Type, List<LimanServiceImplementation>> implementationsByService = new();
@@ -24,16 +24,16 @@ namespace Liman.Implementation.ServiceCollections
         {
             if (!TryAdd(implementationType))
             {
-                throw new LimanException($"Type '{implementationType.GetReadableName()}' is missing {nameof(ServiceImplementationAttribute)}");
+                throw new LimanException($"Type '{implementationType.GetReadableName()}' is missing {nameof(LimanImplementationAttribute)}");
             }
         }
 
-        public void Add(Type implementationType, ServiceImplementationLifetime lifetime, Delegate? constructor = null)
+        public void Add(Type implementationType, LimanImplementationLifetime lifetime, Delegate? constructor = null)
         {
             Add(implementationType, lifetime, Enumerable.Empty<Type>(), constructor);
         }
 
-        public void Add(Type implementationType, ServiceImplementationLifetime lifetime, IEnumerable<Type> serviceTypes, Delegate? constructor = null)
+        public void Add(Type implementationType, LimanImplementationLifetime lifetime, IEnumerable<Type> serviceTypes, Delegate? constructor = null)
         {
             if (implementationByType.ContainsKey(implementationType)) return;
 
@@ -95,7 +95,7 @@ namespace Liman.Implementation.ServiceCollections
         public void Add(Assembly assembly, params Type[] exceptions)
         {
             if (addedAssemblies.Contains(assembly)) return;
-            
+
             addedAssemblies.Add(assembly);
 
             var types = assembly.GetTypes();
@@ -188,18 +188,18 @@ namespace Liman.Implementation.ServiceCollections
             }
         }
 
-        public ServiceImplementationLifetime GetEffectiveLifetime(ILimanServiceImplementation implementation)
+        public LimanImplementationLifetime GetEffectiveLifetime(ILimanServiceImplementation implementation)
         {
             switch (implementation.Lifetime)
             {
-                case ServiceImplementationLifetime.Any:
+                case LimanImplementationLifetime.Any:
                     if (HasScopedDependencies(implementation))
                     {
-                        return ServiceImplementationLifetime.Scoped;
+                        return LimanImplementationLifetime.Scoped;
                     }
                     else
                     {
-                        return ServiceImplementationLifetime.Singleton;
+                        return LimanImplementationLifetime.Singleton;
                     }
                 default:
                     return implementation.Lifetime;
@@ -230,8 +230,8 @@ namespace Liman.Implementation.ServiceCollections
         {
             switch (implementation.Lifetime)
             {
-                case ServiceImplementationLifetime.Singleton:
-                case ServiceImplementationLifetime.Application:
+                case LimanImplementationLifetime.Singleton:
+                case LimanImplementationLifetime.Application:
                     if (HasScopedDependencies(implementation))
                     {
                         var scopedDependencies = string.Join(", ", GetScopedDependencies(implementation));
@@ -305,9 +305,9 @@ namespace Liman.Implementation.ServiceCollections
                 {
                     switch (usedImplementationType.Lifetime)
                     {
-                        case ServiceImplementationLifetime.Scoped: return true;
-                        case ServiceImplementationLifetime.Any:
-                        case ServiceImplementationLifetime.Transient:
+                        case LimanImplementationLifetime.Scoped: return true;
+                        case LimanImplementationLifetime.Any:
+                        case LimanImplementationLifetime.Transient:
                             if (HasScopedDependencies(usedImplementationType)) return true;
                             break;
                     }
@@ -325,9 +325,9 @@ namespace Liman.Implementation.ServiceCollections
                 {
                     switch (usedImplementationType.Lifetime)
                     {
-                        case ServiceImplementationLifetime.Scoped: yield return usedImplementationType; break;
-                        case ServiceImplementationLifetime.Any:
-                        case ServiceImplementationLifetime.Transient:
+                        case LimanImplementationLifetime.Scoped: yield return usedImplementationType; break;
+                        case LimanImplementationLifetime.Any:
+                        case LimanImplementationLifetime.Transient:
                             foreach (var decendentScopedImplementationType in GetScopedDependencies(usedImplementationType))
                             {
                                 yield return decendentScopedImplementationType;
@@ -340,7 +340,7 @@ namespace Liman.Implementation.ServiceCollections
 
         private bool TryAdd(Type implementationType)
         {
-            var attribute = implementationType.GetCustomAttribute<ServiceImplementationAttribute>();
+            var attribute = implementationType.GetCustomAttribute<LimanImplementationAttribute>();
             if (attribute != null)
             {
                 Add(implementationType, attribute.Lifetime, attribute.ServiceTypes);
@@ -370,13 +370,13 @@ namespace Liman.Implementation.ServiceCollections
             }
         }
 
-        private ServiceImplementationLifetime ToLifetime(ServiceLifetime classicLifetime)
+        private LimanImplementationLifetime ToLifetime(ServiceLifetime classicLifetime)
         {
             switch (classicLifetime)
             {
-                case ServiceLifetime.Singleton: return ServiceImplementationLifetime.Singleton;
-                case ServiceLifetime.Scoped: return ServiceImplementationLifetime.Scoped;
-                case ServiceLifetime.Transient: return ServiceImplementationLifetime.Transient;
+                case ServiceLifetime.Singleton: return LimanImplementationLifetime.Singleton;
+                case ServiceLifetime.Scoped: return LimanImplementationLifetime.Scoped;
+                case ServiceLifetime.Transient: return LimanImplementationLifetime.Transient;
                 default: throw new LimanException($"Classic service lifetime '{classicLifetime}' is not supported");
             }
         }
@@ -387,12 +387,12 @@ namespace Liman.Implementation.ServiceCollections
 
             switch (effectiveLifetime)
             {
-                case ServiceImplementationLifetime.Singleton:
-                case ServiceImplementationLifetime.Application:
+                case LimanImplementationLifetime.Singleton:
+                case LimanImplementationLifetime.Application:
                     return ServiceLifetime.Singleton;
-                case ServiceImplementationLifetime.Scoped:
+                case LimanImplementationLifetime.Scoped:
                     return ServiceLifetime.Scoped;
-                case ServiceImplementationLifetime.Transient:
+                case LimanImplementationLifetime.Transient:
                     return ServiceLifetime.Transient;
                 default: throw new InvalidOperationException($"Lifetime '{effectiveLifetime}' cannot be an effective service lifetime");
             }
@@ -402,7 +402,7 @@ namespace Liman.Implementation.ServiceCollections
         {
             implementationByType.Add(implementation.Type, implementation);
 
-            if (implementation.Lifetime == ServiceImplementationLifetime.Application)
+            if (implementation.Lifetime == LimanImplementationLifetime.Application)
             {
                 if (implementation.Type.IsGenericTypeDefinition)
                     throw new LimanException($"Service implementation '{implementation}' cannot have lifetime '{implementation.Lifetime}', because it's a generic type.");

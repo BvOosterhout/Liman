@@ -11,15 +11,15 @@ namespace Liman.Tests
         public LifetimeManagementTests()
         {
             serviceCollection = LimanFactory.CreateServiceCollection();
-            serviceCollection.Add(typeof(LifetimeLog), ServiceImplementationLifetime.Singleton);
+            serviceCollection.Add(typeof(LifetimeLog), LimanImplementationLifetime.Singleton);
         }
 
         [Fact]
         public void Child_Initialize_CalledAfterParentConstruction()
         {
             // Arrange
-            serviceCollection.Add(typeof(MyChildService), ServiceImplementationLifetime.Any);
-            serviceCollection.Add(typeof(MyParentService), ServiceImplementationLifetime.Any);
+            serviceCollection.Add(typeof(MyChildService), LimanImplementationLifetime.Any);
+            serviceCollection.Add(typeof(MyParentService), LimanImplementationLifetime.Any);
             var serviceProvider = LimanFactory.CreateServiceProvider(serviceCollection);
 
             // Act
@@ -36,7 +36,7 @@ namespace Liman.Tests
         public void Application_ConstructsApplicationService()
         {
             // Arrange
-            serviceCollection.Add(typeof(MyChildService), ServiceImplementationLifetime.Application);
+            serviceCollection.Add(typeof(MyChildService), LimanImplementationLifetime.Application);
             var application = LimanFactory.CreateApplication(serviceCollection);
             var serviceProvider = application.ServiceProvider;
 
@@ -52,7 +52,7 @@ namespace Liman.Tests
         public void Application_RunsRunnableApplicationService()
         {
             // Arrange
-            serviceCollection.Add(typeof(MyRunnableService), ServiceImplementationLifetime.Application);
+            serviceCollection.Add(typeof(MyRunnableService), LimanImplementationLifetime.Application);
             var application = LimanFactory.CreateApplication(serviceCollection);
             var serviceProvider = application.ServiceProvider;
 
@@ -65,10 +65,10 @@ namespace Liman.Tests
         }
 
         [Theory]
-        [InlineData(ServiceImplementationLifetime.Singleton)]
-        [InlineData(ServiceImplementationLifetime.Application)]
-        [InlineData(ServiceImplementationLifetime.Any)]
-        public void Singleton_DisposeCalledAtApplicationEnd(ServiceImplementationLifetime lifetime)
+        [InlineData(LimanImplementationLifetime.Singleton)]
+        [InlineData(LimanImplementationLifetime.Application)]
+        [InlineData(LimanImplementationLifetime.Any)]
+        public void Singleton_DisposeCalledAtApplicationEnd(LimanImplementationLifetime lifetime)
         {
             // Arrange
             serviceCollection.Add(typeof(MyChildService), lifetime);
@@ -88,7 +88,7 @@ namespace Liman.Tests
         public void TransientChild_DisposedWhenRemoved()
         {
             // Arrange
-            serviceCollection.Add(typeof(MyNode), ServiceImplementationLifetime.Transient);
+            serviceCollection.Add(typeof(MyNode), LimanImplementationLifetime.Transient);
             var serviceProvider = LimanFactory.CreateServiceProvider(serviceCollection);
 
             // Act
@@ -106,7 +106,7 @@ namespace Liman.Tests
         public void TransientChild_DisposedWhenParentIsDeleted()
         {
             // Arrange
-            serviceCollection.Add(typeof(MyNode), ServiceImplementationLifetime.Transient);
+            serviceCollection.Add(typeof(MyNode), LimanImplementationLifetime.Transient);
             var serviceProvider = LimanFactory.CreateServiceProvider(serviceCollection);
 
             // Act
@@ -126,7 +126,7 @@ namespace Liman.Tests
         public void ScopedService_DisposedWhenScopeIsDeleted()
         {
             // Arrange
-            serviceCollection.Add(typeof(MyChildService), ServiceImplementationLifetime.Scoped);
+            serviceCollection.Add(typeof(MyChildService), LimanImplementationLifetime.Scoped);
             var serviceProvider = LimanFactory.CreateServiceProvider(serviceCollection);
             var scope = serviceProvider.CreateScope();
             var scopedServiceProvider = scope.ServiceProvider;
@@ -141,11 +141,11 @@ namespace Liman.Tests
         }
 
         [Theory]
-        [InlineData(ServiceImplementationLifetime.Singleton)]
-        [InlineData(ServiceImplementationLifetime.Application)]
-        [InlineData(ServiceImplementationLifetime.Any)]
-        [InlineData(ServiceImplementationLifetime.Transient)]
-        public void NonScopedService_NotDisposedWhenScopeIsDeleted(ServiceImplementationLifetime lifetime)
+        [InlineData(LimanImplementationLifetime.Singleton)]
+        [InlineData(LimanImplementationLifetime.Application)]
+        [InlineData(LimanImplementationLifetime.Any)]
+        [InlineData(LimanImplementationLifetime.Transient)]
+        public void NonScopedService_NotDisposedWhenScopeIsDeleted(LimanImplementationLifetime lifetime)
         {
             // Arrange
             serviceCollection.Add(typeof(MyChildService), lifetime);
@@ -182,7 +182,7 @@ namespace Liman.Tests
             public object Service { get; }
         }
 
-        public class LifetimeLog: IEnumerable<LifetimeLogItem>
+        public class LifetimeLog : IEnumerable<LifetimeLogItem>
         {
             private readonly List<LifetimeLogItem> items = new();
 
@@ -207,7 +207,7 @@ namespace Liman.Tests
             }
         }
 
-        public class MyLifetimeLogger: IInitializable, IDisposable
+        public class MyLifetimeLogger : ILimanInitializable, IDisposable
         {
             protected readonly LifetimeLog log;
 
@@ -228,7 +228,7 @@ namespace Liman.Tests
             }
         }
 
-        public class MyRunnableService : MyLifetimeLogger, IRunnable
+        public class MyRunnableService : MyLifetimeLogger, ILimanRunnable
         {
             public MyRunnableService(LifetimeLog log) : base(log)
             {
@@ -252,7 +252,7 @@ namespace Liman.Tests
             }
         }
 
-        public class MyParentService: MyLifetimeLogger
+        public class MyParentService : MyLifetimeLogger
         {
             public MyParentService(LifetimeLog log, MyChildService child) : base(log)
             {

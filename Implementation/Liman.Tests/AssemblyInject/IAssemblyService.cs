@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Liman.Tests.AssemblyInject
+﻿namespace Liman.Tests.AssemblyInject
 {
     internal interface IAssemblyService
     {

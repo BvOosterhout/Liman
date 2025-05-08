@@ -1,6 +1,6 @@
 ﻿namespace Liman
 {
-    public interface IRunnable
+    public interface ILimanRunnable
     {
         public void Run();
 

@@ -1,6 +1,6 @@
 ﻿namespace Liman
 {
-    public enum ServiceImplementationLifetime
+    public enum LimanImplementationLifetime
     {
         /// <summary>
         /// This kind of service implementation does not have a specific lifetime requirement.

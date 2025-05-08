@@ -6,7 +6,7 @@ namespace Liman.Implementation
     internal class LimanApplication : ILimanApplication
     {
         private readonly LimanServiceProvider serviceProvider;
-        private IRunnable? runnable;
+        private ILimanRunnable? runnable;
 
         public LimanApplication(ILimanServiceProvider serviceProvider)
         {
@@ -19,7 +19,7 @@ namespace Liman.Implementation
         public void Run()
         {
             var applicationServices = serviceProvider.GetApplicationServices().ToList();
-            var runnables = applicationServices.OfType<IRunnable>().ToList();
+            var runnables = applicationServices.OfType<ILimanRunnable>().ToList();
 
             if (runnables.Count > 1) throw new LimanException("More than one IRunnable service found");
 

@@ -1,6 +1,6 @@
 ﻿namespace Liman.ConsoleExample;
 
-[ServiceImplementation]
+[LimanImplementation]
 public class MyServiceImplementation : IMyService
 {
     public void DoSomething()

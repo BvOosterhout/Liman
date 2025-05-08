@@ -11,7 +11,7 @@ namespace Liman.Implementation.ServiceFactories
             this.value = value;
         }
 
-        public ServiceImplementationLifetime Lifetime { get; } = ServiceImplementationLifetime.Any;
+        public LimanImplementationLifetime Lifetime { get; } = LimanImplementationLifetime.Any;
 
         public object? Get(IServiceScope? scope, object?[] customArguments)
         {

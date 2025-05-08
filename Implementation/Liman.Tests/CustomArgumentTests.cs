@@ -1,9 +1,4 @@
 ﻿using FluentAssertions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Liman.Tests
 {
@@ -14,7 +9,7 @@ namespace Liman.Tests
         public CustomArgumentTests()
         {
             serviceCollection = LimanFactory.CreateServiceCollection();
-            serviceCollection.Add(typeof(MyServiceWithCustomParameter), ServiceImplementationLifetime.Transient);
+            serviceCollection.Add(typeof(MyServiceWithCustomParameter), LimanImplementationLifetime.Transient);
         }
 
         [Fact]
@@ -58,7 +53,7 @@ namespace Liman.Tests
 
         public class MyServiceWithCustomParameter
         {
-            public MyServiceWithCustomParameter(IServiceProvider dependency, [NoInjection] string customArgument)
+            public MyServiceWithCustomParameter(IServiceProvider dependency, [LimanNoInjection] string customArgument)
             {
                 Dependency = dependency;
                 CustomArgument = customArgument;

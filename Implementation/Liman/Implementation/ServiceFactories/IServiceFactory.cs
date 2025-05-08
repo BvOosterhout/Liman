@@ -4,7 +4,7 @@ namespace Liman.Implementation.ServiceFactories
 {
     internal interface IServiceFactory
     {
-        public ServiceImplementationLifetime Lifetime { get; }
+        public LimanImplementationLifetime Lifetime { get; }
 
         public object? Get(IServiceScope? scope, object?[] customArguments);
 

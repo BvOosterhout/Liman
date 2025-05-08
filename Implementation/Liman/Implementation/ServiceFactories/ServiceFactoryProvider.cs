@@ -1,10 +1,8 @@
 ﻿using Liman.Implementation.Lifetimes;
-using Liman.Implementation.Scopes;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Liman.Implementation.ServiceFactories
 {
-    [ServiceImplementation(ServiceImplementationLifetime.Singleton)]
+    [LimanImplementation(LimanImplementationLifetime.Singleton)]
     internal class ServiceFactoryProvider : IServiceFactoryProvider
     {
         private readonly Dictionary<Type, IServiceFactory> factoryByServiceType = new();
@@ -12,12 +10,12 @@ namespace Liman.Implementation.ServiceFactories
         private readonly ILimanServiceLifetimeManager serviceCollection;
         private readonly bool validate;
         private readonly List<ILimanServiceImplementation> creationsInProgress = new();
-        private readonly List<IInitializable> uninitialized = new();
+        private readonly List<ILimanInitializable> uninitialized = new();
 
         public ServiceFactoryProvider(
             ILimanServiceCollection serviceCollection,
             ILimanServiceLifetimeManager serviceLifetimeManager,
-            [NoInjection] bool validate)
+            [LimanNoInjection] bool validate)
         {
             this.serviceImplementationRepository = serviceCollection;
             this.serviceCollection = serviceLifetimeManager;
@@ -113,7 +111,7 @@ namespace Liman.Implementation.ServiceFactories
                 creationsInProgress.RemoveAt(creationsInProgress.Count - 1);
             }
 
-            if (result is IInitializable initializable)
+            if (result is ILimanInitializable initializable)
             {
                 lock (uninitialized)
                 {
@@ -135,12 +133,12 @@ namespace Liman.Implementation.ServiceFactories
 
             switch (effectiveLifetime)
             {
-                case ServiceImplementationLifetime.Singleton:
-                case ServiceImplementationLifetime.Application:
+                case LimanImplementationLifetime.Singleton:
+                case LimanImplementationLifetime.Application:
                     return new SingletonServiceFactory(this, serviceCollection, implementationType);
-                case ServiceImplementationLifetime.Transient:
+                case LimanImplementationLifetime.Transient:
                     return new TransientServiceFactory(this, serviceCollection, implementationType);
-                case ServiceImplementationLifetime.Scoped:
+                case LimanImplementationLifetime.Scoped:
                     return new ScopedServiceFactory(this, serviceCollection, implementationType);
                 default:
                     throw new InvalidOperationException();
@@ -151,7 +149,7 @@ namespace Liman.Implementation.ServiceFactories
         {
             do
             {
-                List<IInitializable> servicesToInitialize;
+                List<ILimanInitializable> servicesToInitialize;
 
                 lock (uninitialized)
                 {
@@ -160,7 +158,7 @@ namespace Liman.Implementation.ServiceFactories
                         return;
                     }
 
-                    servicesToInitialize = new List<IInitializable>(uninitialized);
+                    servicesToInitialize = new List<ILimanInitializable>(uninitialized);
                     uninitialized.Clear();
                 }
 

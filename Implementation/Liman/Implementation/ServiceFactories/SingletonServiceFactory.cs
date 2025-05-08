@@ -17,7 +17,7 @@ namespace Liman.Implementation.ServiceFactories
             this.serviceLifetimeManager = serviceLifetimeManager;
         }
 
-        public override ServiceImplementationLifetime Lifetime { get; } = ServiceImplementationLifetime.Singleton;
+        public override LimanImplementationLifetime Lifetime { get; } = LimanImplementationLifetime.Singleton;
 
         public override object? Get(IServiceScope? scope, object?[] customArguments)
         {

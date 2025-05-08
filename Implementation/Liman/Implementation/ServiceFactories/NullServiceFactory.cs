@@ -6,7 +6,7 @@ namespace Liman.Implementation.ServiceFactories
     {
         public static IServiceFactory Instance { get; } = new NullServiceFactory();
 
-        public ServiceImplementationLifetime Lifetime { get; } = ServiceImplementationLifetime.Singleton;
+        public LimanImplementationLifetime Lifetime { get; } = LimanImplementationLifetime.Singleton;
 
         private NullServiceFactory() { }
 

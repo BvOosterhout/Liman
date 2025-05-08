@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Liman.Implementation.ServiceProviders
 {
-    [ServiceImplementation(ServiceImplementationLifetime.Transient)]
+    [LimanImplementation(LimanImplementationLifetime.Transient)]
     internal class LimanServiceProvider : ILimanServiceProvider, IDependency
     {
         private readonly IServiceFactoryProvider serviceFactoryProvider;
@@ -30,7 +30,7 @@ namespace Liman.Implementation.ServiceProviders
             var factory = serviceFactoryProvider.Get(serviceType);
             var implementation = factory.Get(scope, customArguments);
 
-            if (user != null && factory.Lifetime == ServiceImplementationLifetime.Transient && implementation != null)
+            if (user != null && factory.Lifetime == LimanImplementationLifetime.Transient && implementation != null)
             {
                 applicationLifetimeManager.AddTransientDependency(user, implementation);
             }
@@ -48,7 +48,7 @@ namespace Liman.Implementation.ServiceProviders
             {
                 var factory = serviceFactoryProvider.Get(service.GetType());
 
-                if (factory.Lifetime == ServiceImplementationLifetime.Transient)
+                if (factory.Lifetime == LimanImplementationLifetime.Transient)
                 {
                     applicationLifetimeManager.Delete(service);
                 }
