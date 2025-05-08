@@ -19,7 +19,7 @@ namespace Liman
             {
                 var lifetimeManager = new LimanServiceLifetimeManager(implementationRepository);
                 var serviceFactory = new ServiceFactoryProvider(implementationRepository, lifetimeManager, validate);
-                var serviceProvider = new LimanServiceProvider(serviceFactory, lifetimeManager, scope: null);
+                var serviceProvider = new LimanServiceProvider(serviceFactory, lifetimeManager);
                 return serviceProvider;
             }
             else

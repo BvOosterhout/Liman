@@ -1,4 +1,5 @@
-﻿using Liman.Implementation.ServiceProviders;
+﻿using Liman.Implementation.Lifetimes;
+using Liman.Implementation.ServiceProviders;
 
 namespace Liman.Implementation
 {
@@ -13,6 +14,8 @@ namespace Liman.Implementation
                 ?? throw new InvalidOperationException();
         }
 
+        public ILimanServiceProvider ServiceProvider { get => serviceProvider; }
+
         public void Run()
         {
             var applicationServices = serviceProvider.GetApplicationServices().ToList();
@@ -22,6 +25,9 @@ namespace Liman.Implementation
 
             runnable = runnables.FirstOrDefault();
             runnable?.Run();
+
+            var lifetimeManager = serviceProvider.GetRequiredService<ILimanServiceLifetimeManager>();
+            lifetimeManager.DeleteAllServices();
         }
 
         public void Stop()

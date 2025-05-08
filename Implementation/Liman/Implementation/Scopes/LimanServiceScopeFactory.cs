@@ -19,13 +19,11 @@ namespace Liman.Implementation.Scopes
 
         public IServiceScope CreateScope()
         {
-            var scope = new LimanServiceScope();
-            var serviceProvider = new LimanServiceProvider(serviceFactoryProvider, serviceLifetimeManager, scope);
-            scope.ServiceProvider = serviceProvider;
+            var serviceProvider = new LimanServiceProvider(serviceFactoryProvider, serviceLifetimeManager);
+            var scope = new LimanServiceScope(serviceProvider);
+            serviceProvider.SetScope(scope);
 
             return scope;
         }
-
-
     }
 }

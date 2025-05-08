@@ -9,17 +9,15 @@ namespace Liman.Implementation.ServiceProviders
     {
         private readonly IServiceFactoryProvider serviceFactoryProvider;
         private readonly ILimanServiceLifetimeManager applicationLifetimeManager;
-        private readonly IServiceScope? scope;
+        private IServiceScope? scope;
         private object? user;
 
         public LimanServiceProvider(
             IServiceFactoryProvider serviceFactoryProvider,
-            ILimanServiceLifetimeManager applicationLifetimeManager,
-            IServiceScope? scope)
+            ILimanServiceLifetimeManager applicationLifetimeManager)
         {
             this.serviceFactoryProvider = serviceFactoryProvider;
             this.applicationLifetimeManager = applicationLifetimeManager;
-            this.scope = scope;
         }
 
         public object? GetService(Type serviceType)
@@ -40,10 +38,37 @@ namespace Liman.Implementation.ServiceProviders
             return implementation;
         }
 
+        public void RemoveService(object service)
+        {
+            if (user != null)
+            {
+                applicationLifetimeManager.DeleteTransientDependency(user, service);
+            }
+            else
+            {
+                var factory = serviceFactoryProvider.Get(service.GetType());
+
+                if (factory.Lifetime == ServiceImplementationLifetime.Transient)
+                {
+                    applicationLifetimeManager.Delete(service);
+                }
+                else
+                {
+                    throw new LimanException($"Cannot remove service '{service.GetType().GetReadableName()}', because it is not a transient service.");
+                }
+            }
+        }
+
         public void RegisterUser(object user)
         {
             if (this.user != null) throw new LimanException("A user was already registered for ServiceProvider");
             this.user = user;
+        }
+
+        public void SetScope(IServiceScope scope)
+        {
+            if (this.scope != null) throw new LimanException("A scope was already set for ServiceProvider");
+            this.scope = scope;
         }
 
         public IEnumerable<object> GetApplicationServices()
@@ -52,6 +77,40 @@ namespace Liman.Implementation.ServiceProviders
             {
                 yield return factory.Get(scope, []) ?? throw new InvalidOperationException();
             }
+        }
+
+        public void RegisterDependency(object dependency)
+        {
+            if (user != null)
+            {
+                applicationLifetimeManager.AddTransientDependency(user, dependency);
+            }
+            else
+            {
+                throw new LimanException($"Cannot register dependency '{dependency.GetType().GetReadableName()}', because the service provider is not tied to a user.");
+            }
+        }
+
+        public void DeregisterDependency(object dependency)
+        {
+            if (user != null)
+            {
+                applicationLifetimeManager.DeleteTransientDependency(user, dependency);
+            }
+            else
+            {
+                throw new LimanException($"Cannot deregister dependency '{dependency.GetType().GetReadableName()}', because the service provider is not tied to a user.");
+            }
+        }
+
+        public void RegisterDependency(object user, object dependency)
+        {
+            applicationLifetimeManager.AddTransientDependency(user, dependency);
+        }
+
+        public void DeregisterDependency(object user, object dependency)
+        {
+            applicationLifetimeManager.DeleteTransientDependency(user, dependency);
         }
     }
 }

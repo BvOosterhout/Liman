@@ -1,6 +1,6 @@
 ﻿namespace Liman.Implementation.Lifetimes
 {
-    public interface ILimanServiceLifetimeManager
+    internal interface ILimanServiceLifetimeManager
     {
         bool AddTransientDependency(object user, object transient);
         void DeleteTransientDependency(object user, object transient);
