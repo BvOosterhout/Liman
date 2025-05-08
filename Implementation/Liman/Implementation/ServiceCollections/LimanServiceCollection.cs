@@ -13,6 +13,7 @@ namespace Liman.Implementation.ServiceCollections
         private Dictionary<Type, List<LimanServiceImplementation>> genericImplementationsByService = new();
         private Dictionary<Type, LimanServiceImplementation> implementationByType = new();
         private List<LimanServiceImplementation> applicationServices = new();
+        private List<Assembly> addedAssemblies = new();
 
         public LimanServiceCollection()
         {
@@ -93,6 +94,10 @@ namespace Liman.Implementation.ServiceCollections
 
         public void Add(Assembly assembly, params Type[] exceptions)
         {
+            if (addedAssemblies.Contains(assembly)) return;
+            
+            addedAssemblies.Add(assembly);
+
             var types = assembly.GetTypes();
 
             foreach (var type in types)
