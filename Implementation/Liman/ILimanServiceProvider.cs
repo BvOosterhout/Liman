@@ -1,6 +1,6 @@
 ﻿namespace Liman
 {
-    public interface ILimanServiceProvider : IServiceProvider
+    public interface ILimanServiceProvider : IServiceProvider, IDisposable
     {
         object? GetService(Type serviceType, params object[] customArguments);
         void RemoveService(object service);

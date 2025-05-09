@@ -1,32 +1,31 @@
-﻿namespace Liman.ConsoleExample
+﻿namespace Liman.ConsoleExample;
+
+[LimanService(LimanServiceLifetime.Application)]
+internal class MyApplicationService : ILimanRunnable
 {
-    [LimanService(LimanServiceLifetime.Application)]
-    internal class MyApplicationService : ILimanRunnable
+    private readonly IMyService service;
+    private bool isRunning = true;
+
+    public MyApplicationService(IMyService service)
     {
-        private readonly IMyService service;
-        private bool isRunning = true;
+        this.service = service;
+    }
 
-        public MyApplicationService(IMyService service)
+    public void Run()
+    {
+        Console.WriteLine("Press 'Enter' to do something, or type 'quit' to exit.");
+
+        while (isRunning)
         {
-            this.service = service;
-        }
+            var line = Console.ReadLine();
 
-        public void Run()
-        {
-            Console.WriteLine("Press 'Enter' to do something, or type 'quit' to exit.");
-
-            while (isRunning)
+            if (line == "quit")
             {
-                var line = Console.ReadLine();
-
-                if (line == "quit")
-                {
-                    isRunning = false;
-                }
-                else
-                {
-                    service.DoSomething();
-                }
+                isRunning = false;
+            }
+            else
+            {
+                service.DoSomething();
             }
         }
     }

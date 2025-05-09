@@ -60,7 +60,7 @@ public class MyNotDisposableService
 }
 ```
 
-_Program.cs__
+_Program.cs_
 ```csharp
 using Liman;
 using System.Reflection;

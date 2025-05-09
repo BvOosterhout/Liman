@@ -1,6 +1,7 @@
 ﻿using Liman.Implementation.Lifetimes;
 using Liman.Implementation.ServiceFactories;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace Liman.Implementation.ServiceProviders
 {
@@ -8,16 +9,16 @@ namespace Liman.Implementation.ServiceProviders
     internal class LimanServiceProvider : ILimanServiceProvider, IDependency
     {
         private readonly IServiceFactoryProvider serviceFactoryProvider;
-        private readonly ILimanServiceLifetimeManager applicationLifetimeManager;
+        private readonly ILimanServiceLifetimeManager lifetimeManager;
         private IServiceScope? scope;
         private object? user;
 
         public LimanServiceProvider(
             IServiceFactoryProvider serviceFactoryProvider,
-            ILimanServiceLifetimeManager applicationLifetimeManager)
+            ILimanServiceLifetimeManager lifetimeManager)
         {
             this.serviceFactoryProvider = serviceFactoryProvider;
-            this.applicationLifetimeManager = applicationLifetimeManager;
+            this.lifetimeManager = lifetimeManager;
         }
 
         public object? GetService(Type serviceType)
@@ -32,7 +33,7 @@ namespace Liman.Implementation.ServiceProviders
 
             if (user != null && factory.Lifetime == LimanServiceLifetime.Transient && implementation != null)
             {
-                applicationLifetimeManager.AddTransientDependency(user, implementation);
+                lifetimeManager.AddTransientDependency(user, implementation);
             }
 
             return implementation;
@@ -42,7 +43,7 @@ namespace Liman.Implementation.ServiceProviders
         {
             if (user != null)
             {
-                applicationLifetimeManager.DeleteTransientDependency(user, service);
+                lifetimeManager.DeleteTransientDependency(user, service);
             }
             else
             {
@@ -50,7 +51,7 @@ namespace Liman.Implementation.ServiceProviders
 
                 if (factory.Lifetime == LimanServiceLifetime.Transient)
                 {
-                    applicationLifetimeManager.Delete(service);
+                    lifetimeManager.Delete(service);
                 }
                 else
                 {
@@ -83,7 +84,7 @@ namespace Liman.Implementation.ServiceProviders
         {
             if (user != null)
             {
-                applicationLifetimeManager.AddTransientDependency(user, dependency);
+                lifetimeManager.AddTransientDependency(user, dependency);
             }
             else
             {
@@ -95,7 +96,7 @@ namespace Liman.Implementation.ServiceProviders
         {
             if (user != null)
             {
-                applicationLifetimeManager.DeleteTransientDependency(user, dependency);
+                lifetimeManager.DeleteTransientDependency(user, dependency);
             }
             else
             {
@@ -105,12 +106,17 @@ namespace Liman.Implementation.ServiceProviders
 
         public void RegisterDependency(object user, object dependency)
         {
-            applicationLifetimeManager.AddTransientDependency(user, dependency);
+            lifetimeManager.AddTransientDependency(user, dependency);
         }
 
         public void DeregisterDependency(object user, object dependency)
         {
-            applicationLifetimeManager.DeleteTransientDependency(user, dependency);
+            lifetimeManager.DeleteTransientDependency(user, dependency);
+        }
+
+        public void Dispose()
+        {
+            lifetimeManager.DeleteAllServices();
         }
     }
 }

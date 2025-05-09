@@ -1,7 +1,6 @@
-﻿namespace Liman.ConsoleExample
+﻿namespace Liman.ConsoleExample;
+
+public interface IMyService
 {
-    public interface IMyService
-    {
-        public void DoSomething();
-    }
+    public void DoSomething();
 }

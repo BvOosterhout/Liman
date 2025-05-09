@@ -36,8 +36,7 @@ namespace Liman.Implementation
             Task.WaitAll(runnableTasks);
 
             // clean up services
-            var lifetimeManager = serviceProvider.GetRequiredService<ILimanServiceLifetimeManager>();
-            lifetimeManager.DeleteAllServices();
+            ServiceProvider.Dispose();
         }
     }
 }
