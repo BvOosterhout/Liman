@@ -34,8 +34,9 @@ public class MyOtherServiceImplementation
 ```
 
 ## Lifetime management
-Liman will automatically clean up your disposables when they are no longer used, or at least when your application is finished. Even if the service that uses it is not disposable.
+Liman will automatically clean up your disposables when they are no longer used, or at least when your application is finished. Even if the service that uses it, is not disposable.
 
+MyDisposableService.cs
 ```csharp
 [LimanService]
 public class MyDisposableService : IMyService, IDisposable
@@ -47,6 +48,7 @@ public class MyDisposableService : IMyService, IDisposable
 }
 ```
 
+MyNotDisposableService.cs
 ```csharp
 [LimanService]
 public class MyNotDisposableService
@@ -60,7 +62,7 @@ public class MyNotDisposableService
 }
 ```
 
-_Program.cs_
+Program.cs
 ```csharp
 using Liman;
 using System.Reflection;
@@ -73,6 +75,7 @@ application.Run();
 
 It will also automatically load (and run) your application services.
 
+MainApplicationService.cs
 ```csharp
 [LimanService(LimanServiceLifetime.Application)]
 internal class MainApplicationService : ILimanRunnable
@@ -100,6 +103,7 @@ internal class MainApplicationService : ILimanRunnable
 }
 ```
 
+ApplicationLogger.cs
 ```csharp
 [LimanService(LimanServiceLifetime.Application)]
 internal class ApplicationLogger : ILimanInitializable, IDisposable
@@ -118,6 +122,7 @@ internal class ApplicationLogger : ILimanInitializable, IDisposable
 
 And if you are creating services outside of constructor injection, make sure you let the service provider know when you don't use it anymore. This ensures that everything is disposed of properly.
 
+ServiceUser.cs
 ```csharp
 [LimanService(LimanServiceLifetime.Application)]
 internal class ServiceUser
@@ -132,11 +137,37 @@ internal class ServiceUser
     
     public void CreateNew()
     {
-        // remove old service if needed
+        // remove old service
         if (service != null) serviceProvider.RemoveService(service);
         
         // create new service
         service = serviceProvider.GetRequiredService<IMyService>();
     }   
+}
+```
+
+# Custom arguments
+In some cases you may need dependency injection and arguments in the same constructor. You can use the NoInjectionAttribute for this.
+
+Keep in mind that you have to put your custom parameters at the end of the constructor. And when creating the service, you need to enter the arguments in the same order.
+
+```csharp
+[LimanService]
+public class MyServiceImplementation : IMyService
+{
+    public MyServiceImplementation(IMyOtherService otherService, [NoInjection]string customArgument)
+    {
+    }
+}
+```
+
+```csharp
+[LimanService]
+public class MyUserService 
+{
+    public MyServiceImplementation(ILimanServiceProvider serviceProvider)
+    {
+        var myService = serviceProvider.GetRequiredService<IMyService>("CustomArgument");
+    }
 }
 ```
