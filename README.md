@@ -36,7 +36,6 @@ public class MyOtherServiceImplementation
 ## Lifetime management
 Liman will automatically clean up your disposables when they are no longer used, or at least when your application is finished. Even if the service that uses it, is not disposable.
 
-MyDisposableService.cs
 ```csharp
 [LimanService]
 public class MyDisposableService : IMyService, IDisposable
@@ -48,7 +47,6 @@ public class MyDisposableService : IMyService, IDisposable
 }
 ```
 
-MyNotDisposableService.cs
 ```csharp
 [LimanService]
 public class MyNotDisposableService
@@ -62,7 +60,7 @@ public class MyNotDisposableService
 }
 ```
 
-Program.cs
+_Program.cs__
 ```csharp
 using Liman;
 using System.Reflection;
@@ -75,7 +73,6 @@ application.Run();
 
 It will also automatically load (and run) your application services.
 
-MainApplicationService.cs
 ```csharp
 [LimanService(LimanServiceLifetime.Application)]
 internal class MainApplicationService : ILimanRunnable
@@ -103,7 +100,6 @@ internal class MainApplicationService : ILimanRunnable
 }
 ```
 
-ApplicationLogger.cs
 ```csharp
 [LimanService(LimanServiceLifetime.Application)]
 internal class ApplicationLogger : ILimanInitializable, IDisposable
@@ -122,7 +118,6 @@ internal class ApplicationLogger : ILimanInitializable, IDisposable
 
 And if you are creating services outside of constructor injection, make sure you let the service provider know when you don't use it anymore. This ensures that everything is disposed of properly.
 
-ServiceUser.cs
 ```csharp
 [LimanService(LimanServiceLifetime.Application)]
 internal class ServiceUser
