@@ -4,7 +4,7 @@ namespace Liman.Implementation.ServiceFactories
 {
     internal class ServiceScopeFactory : IServiceFactory
     {
-        public LimanImplementationLifetime Lifetime => LimanImplementationLifetime.Transient;
+        public LimanServiceLifetime Lifetime => LimanServiceLifetime.Transient;
 
         public object? Get(IServiceScope? scope, object?[] customArguments)
         {

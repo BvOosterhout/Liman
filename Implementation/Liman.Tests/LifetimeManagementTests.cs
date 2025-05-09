@@ -11,15 +11,15 @@ namespace Liman.Tests
         public LifetimeManagementTests()
         {
             serviceCollection = LimanFactory.CreateServiceCollection();
-            serviceCollection.Add(typeof(LifetimeLog), LimanImplementationLifetime.Singleton);
+            serviceCollection.Add(typeof(LifetimeLog), LimanServiceLifetime.Singleton);
         }
 
         [Fact]
         public void Child_Initialize_CalledAfterParentConstruction()
         {
             // Arrange
-            serviceCollection.Add(typeof(MyChildService), LimanImplementationLifetime.Any);
-            serviceCollection.Add(typeof(MyParentService), LimanImplementationLifetime.Any);
+            serviceCollection.Add(typeof(MyChildService), LimanServiceLifetime.Any);
+            serviceCollection.Add(typeof(MyParentService), LimanServiceLifetime.Any);
             var serviceProvider = LimanFactory.CreateServiceProvider(serviceCollection);
 
             // Act
@@ -36,7 +36,7 @@ namespace Liman.Tests
         public void Application_ConstructsApplicationService()
         {
             // Arrange
-            serviceCollection.Add(typeof(MyChildService), LimanImplementationLifetime.Application);
+            serviceCollection.Add(typeof(MyChildService), LimanServiceLifetime.Application);
             var application = LimanFactory.CreateApplication(serviceCollection);
             var serviceProvider = application.ServiceProvider;
 
@@ -52,7 +52,7 @@ namespace Liman.Tests
         public void Application_RunsRunnableApplicationService()
         {
             // Arrange
-            serviceCollection.Add(typeof(MyRunnableService), LimanImplementationLifetime.Application);
+            serviceCollection.Add(typeof(MyRunnableService), LimanServiceLifetime.Application);
             var application = LimanFactory.CreateApplication(serviceCollection);
             var serviceProvider = application.ServiceProvider;
 
@@ -65,10 +65,10 @@ namespace Liman.Tests
         }
 
         [Theory]
-        [InlineData(LimanImplementationLifetime.Singleton)]
-        [InlineData(LimanImplementationLifetime.Application)]
-        [InlineData(LimanImplementationLifetime.Any)]
-        public void Singleton_DisposeCalledAtApplicationEnd(LimanImplementationLifetime lifetime)
+        [InlineData(LimanServiceLifetime.Singleton)]
+        [InlineData(LimanServiceLifetime.Application)]
+        [InlineData(LimanServiceLifetime.Any)]
+        public void Singleton_DisposeCalledAtApplicationEnd(LimanServiceLifetime lifetime)
         {
             // Arrange
             serviceCollection.Add(typeof(MyChildService), lifetime);
@@ -88,7 +88,7 @@ namespace Liman.Tests
         public void TransientChild_DisposedWhenRemoved()
         {
             // Arrange
-            serviceCollection.Add(typeof(MyNode), LimanImplementationLifetime.Transient);
+            serviceCollection.Add(typeof(MyNode), LimanServiceLifetime.Transient);
             var serviceProvider = LimanFactory.CreateServiceProvider(serviceCollection);
 
             // Act
@@ -106,7 +106,7 @@ namespace Liman.Tests
         public void TransientChild_DisposedWhenParentIsDeleted()
         {
             // Arrange
-            serviceCollection.Add(typeof(MyNode), LimanImplementationLifetime.Transient);
+            serviceCollection.Add(typeof(MyNode), LimanServiceLifetime.Transient);
             var serviceProvider = LimanFactory.CreateServiceProvider(serviceCollection);
 
             // Act
@@ -126,7 +126,7 @@ namespace Liman.Tests
         public void ScopedService_DisposedWhenScopeIsDeleted()
         {
             // Arrange
-            serviceCollection.Add(typeof(MyChildService), LimanImplementationLifetime.Scoped);
+            serviceCollection.Add(typeof(MyChildService), LimanServiceLifetime.Scoped);
             var serviceProvider = LimanFactory.CreateServiceProvider(serviceCollection);
             var scope = serviceProvider.CreateScope();
             var scopedServiceProvider = scope.ServiceProvider;
@@ -141,11 +141,11 @@ namespace Liman.Tests
         }
 
         [Theory]
-        [InlineData(LimanImplementationLifetime.Singleton)]
-        [InlineData(LimanImplementationLifetime.Application)]
-        [InlineData(LimanImplementationLifetime.Any)]
-        [InlineData(LimanImplementationLifetime.Transient)]
-        public void NonScopedService_NotDisposedWhenScopeIsDeleted(LimanImplementationLifetime lifetime)
+        [InlineData(LimanServiceLifetime.Singleton)]
+        [InlineData(LimanServiceLifetime.Application)]
+        [InlineData(LimanServiceLifetime.Any)]
+        [InlineData(LimanServiceLifetime.Transient)]
+        public void NonScopedService_NotDisposedWhenScopeIsDeleted(LimanServiceLifetime lifetime)
         {
             // Arrange
             serviceCollection.Add(typeof(MyChildService), lifetime);

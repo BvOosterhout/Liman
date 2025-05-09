@@ -4,7 +4,7 @@ namespace Liman.Implementation.ServiceCollections
 {
     internal class LimanServiceImplementation : ILimanServiceImplementation
     {
-        public LimanServiceImplementation(Type type, LimanImplementationLifetime lifetime, Delegate? factoryMethod)
+        public LimanServiceImplementation(Type type, LimanServiceLifetime lifetime, Delegate? factoryMethod)
         {
             Type = type;
             Lifetime = lifetime;
@@ -18,7 +18,7 @@ namespace Liman.Implementation.ServiceCollections
 
             foreach (var parameter in FactoryMethod.GetParameters())
             {
-                if (parameter.GetCustomAttribute<LimanNoInjectionAttribute>() != null)
+                if (parameter.GetCustomAttribute<NoInjectionAttribute>() != null)
                 {
                     customParameters.Add(parameter.ParameterType);
                     unInjectable = true;
@@ -38,7 +38,7 @@ namespace Liman.Implementation.ServiceCollections
         }
 
         public Type Type { get; }
-        public LimanImplementationLifetime Lifetime { get; }
+        public LimanServiceLifetime Lifetime { get; }
         public IReadOnlyList<Type> ServiceParameters { get; }
         public IReadOnlyList<Type> CustomParameters { get; }
         public MethodBase FactoryMethod { get; }

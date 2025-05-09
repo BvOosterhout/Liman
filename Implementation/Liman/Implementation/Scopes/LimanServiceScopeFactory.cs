@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Liman.Implementation.Scopes
 {
-    [LimanImplementation(LimanImplementationLifetime.Transient)]
+    [LimanService(LimanServiceLifetime.Transient)]
     internal class LimanServiceScopeFactory : IServiceScopeFactory
     {
         private readonly IServiceFactoryProvider serviceFactoryProvider;

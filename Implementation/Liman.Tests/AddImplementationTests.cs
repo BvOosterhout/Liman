@@ -34,10 +34,10 @@ namespace Liman.Tests
             // Arrange
 
             // Act
-            serviceCollection.Add(typeof(MyServiceImplementation), LimanImplementationLifetime.Any);
+            serviceCollection.Add(typeof(MyServiceImplementation), LimanServiceLifetime.Any);
 
             // Assert
-            VerifyExistence<MyServiceImplementation>(LimanImplementationLifetime.Any);
+            VerifyExistence<MyServiceImplementation>(LimanServiceLifetime.Any);
         }
 
         [Fact]
@@ -46,11 +46,11 @@ namespace Liman.Tests
             // Arrange
 
             // Act
-            serviceCollection.Add(typeof(MyServiceImplementation), LimanImplementationLifetime.Any);
+            serviceCollection.Add(typeof(MyServiceImplementation), LimanServiceLifetime.Any);
 
             // Assert
-            VerifyExistence<IMyService>(LimanImplementationLifetime.Any);
-            VerifyExistence<MyServiceImplementation>(LimanImplementationLifetime.Any);
+            VerifyExistence<IMyService>(LimanServiceLifetime.Any);
+            VerifyExistence<MyServiceImplementation>(LimanServiceLifetime.Any);
         }
 
         [Fact]
@@ -59,8 +59,8 @@ namespace Liman.Tests
             // Arrange
 
             // Act
-            serviceCollection.Add(typeof(MyServiceImplementation), LimanImplementationLifetime.Any);
-            serviceCollection.Add(typeof(AlternateServiceImplementation), LimanImplementationLifetime.Any);
+            serviceCollection.Add(typeof(MyServiceImplementation), LimanServiceLifetime.Any);
+            serviceCollection.Add(typeof(AlternateServiceImplementation), LimanServiceLifetime.Any);
 
             // Assert
             var implementations = serviceCollection.GetAll(typeof(IMyService));
@@ -74,10 +74,10 @@ namespace Liman.Tests
             // Arrange
 
             // Act
-            serviceCollection.Add(typeof(List<>), LimanImplementationLifetime.Any);
+            serviceCollection.Add(typeof(List<>), LimanServiceLifetime.Any);
 
             // Assert
-            VerifyExistence<List<string>>(LimanImplementationLifetime.Any);
+            VerifyExistence<List<string>>(LimanServiceLifetime.Any);
         }
 
         [Fact]
@@ -86,11 +86,11 @@ namespace Liman.Tests
             // Arrange
 
             // Act
-            serviceCollection.Add(typeof(MyServiceImplementation), LimanImplementationLifetime.Any);
-            serviceCollection.Add(typeof(MyServiceImplementation), LimanImplementationLifetime.Any);
+            serviceCollection.Add(typeof(MyServiceImplementation), LimanServiceLifetime.Any);
+            serviceCollection.Add(typeof(MyServiceImplementation), LimanServiceLifetime.Any);
 
             // Assert
-            VerifyExistence<MyServiceImplementation>(LimanImplementationLifetime.Any);
+            VerifyExistence<MyServiceImplementation>(LimanServiceLifetime.Any);
         }
 
         [Fact]
@@ -102,7 +102,7 @@ namespace Liman.Tests
             serviceCollection.Add(Assembly.GetExecutingAssembly());
 
             // Assert
-            VerifyExistence<AssemblyServiceImplementation>(LimanImplementationLifetime.Any);
+            VerifyExistence<AssemblyServiceImplementation>(LimanServiceLifetime.Any);
         }
 
         [Fact]
@@ -114,7 +114,7 @@ namespace Liman.Tests
             serviceCollection.Add(typeof(DependencyConfiguration));
 
             // Assert
-            VerifyExistence<List<string>>(LimanImplementationLifetime.Transient);
+            VerifyExistence<List<string>>(LimanServiceLifetime.Transient);
         }
 
         [Fact]
@@ -126,15 +126,15 @@ namespace Liman.Tests
             serviceCollection.Add(typeof(ClassicDependencyConfiguration));
 
             // Assert
-            VerifyExistence<Stack<string>>(LimanImplementationLifetime.Transient);
+            VerifyExistence<Stack<string>>(LimanServiceLifetime.Transient);
         }
 
-        private void VerifyExistence<T>(LimanImplementationLifetime lifetime)
+        private void VerifyExistence<T>(LimanServiceLifetime lifetime)
         {
             VerifyExistence(typeof(T), lifetime);
         }
 
-        private void VerifyExistence(Type serviceType, LimanImplementationLifetime lifetime)
+        private void VerifyExistence(Type serviceType, LimanServiceLifetime lifetime)
         {
             serviceCollection.TryGetSingle(serviceType, out var implementation).Should().BeTrue();
             implementation.Should().NotBeNull();
@@ -159,7 +159,7 @@ namespace Liman.Tests
         {
             public void Configure(ILimanServiceCollection services)
             {
-                services.Add(typeof(List<>), LimanImplementationLifetime.Transient);
+                services.Add(typeof(List<>), LimanServiceLifetime.Transient);
             }
         }
 

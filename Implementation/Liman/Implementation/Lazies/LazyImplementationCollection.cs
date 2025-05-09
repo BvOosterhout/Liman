@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace Liman.Implementation.Lazies
 {
-    [LimanImplementation(LimanImplementationLifetime.Transient, typeof(LazyImplementationCollection<>), typeof(ILimanImplementationCollection<>))]
+    [LimanService(LimanServiceLifetime.Transient, typeof(LazyImplementationCollection<>), typeof(ILimanImplementationCollection<>))]
     internal class LazyImplementationCollection<T> : ILimanImplementationCollection<T>
     {
         private readonly IServiceProvider serviceProvider;

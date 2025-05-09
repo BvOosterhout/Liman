@@ -2,7 +2,7 @@
 
 namespace Liman.Implementation.Lifetimes
 {
-    [LimanImplementation(LimanImplementationLifetime.Singleton)]
+    [LimanService(LimanServiceLifetime.Singleton)]
     internal class LimanServiceLifetimeManager : ILimanServiceLifetimeManager
     {
         private readonly ILimanServiceCollection serviceCollection;

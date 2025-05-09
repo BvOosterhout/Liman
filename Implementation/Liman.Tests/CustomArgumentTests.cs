@@ -9,7 +9,7 @@ namespace Liman.Tests
         public CustomArgumentTests()
         {
             serviceCollection = LimanFactory.CreateServiceCollection();
-            serviceCollection.Add(typeof(MyServiceWithCustomParameter), LimanImplementationLifetime.Transient);
+            serviceCollection.Add(typeof(MyServiceWithCustomParameter), LimanServiceLifetime.Transient);
         }
 
         [Fact]
@@ -53,7 +53,7 @@ namespace Liman.Tests
 
         public class MyServiceWithCustomParameter
         {
-            public MyServiceWithCustomParameter(IServiceProvider dependency, [LimanNoInjection] string customArgument)
+            public MyServiceWithCustomParameter(IServiceProvider dependency, [NoInjection] string customArgument)
             {
                 Dependency = dependency;
                 CustomArgument = customArgument;

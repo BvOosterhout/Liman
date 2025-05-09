@@ -2,7 +2,7 @@
 
 namespace Liman.Implementation.ServiceFactories
 {
-    [LimanImplementation(LimanImplementationLifetime.Singleton)]
+    [LimanService(LimanServiceLifetime.Singleton)]
     internal class ServiceFactoryProvider : IServiceFactoryProvider
     {
         private readonly Dictionary<Type, IServiceFactory> factoryByServiceType = new();
@@ -15,7 +15,7 @@ namespace Liman.Implementation.ServiceFactories
         public ServiceFactoryProvider(
             ILimanServiceCollection serviceCollection,
             ILimanServiceLifetimeManager serviceLifetimeManager,
-            [LimanNoInjection] bool validate)
+            [NoInjection] bool validate)
         {
             this.serviceImplementationRepository = serviceCollection;
             this.serviceCollection = serviceLifetimeManager;
@@ -133,12 +133,12 @@ namespace Liman.Implementation.ServiceFactories
 
             switch (effectiveLifetime)
             {
-                case LimanImplementationLifetime.Singleton:
-                case LimanImplementationLifetime.Application:
+                case LimanServiceLifetime.Singleton:
+                case LimanServiceLifetime.Application:
                     return new SingletonServiceFactory(this, serviceCollection, implementationType);
-                case LimanImplementationLifetime.Transient:
+                case LimanServiceLifetime.Transient:
                     return new TransientServiceFactory(this, serviceCollection, implementationType);
-                case LimanImplementationLifetime.Scoped:
+                case LimanServiceLifetime.Scoped:
                     return new ScopedServiceFactory(this, serviceCollection, implementationType);
                 default:
                     throw new InvalidOperationException();

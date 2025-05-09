@@ -1,5 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
-using Liman;
+﻿using Liman;
 using System.Reflection;
 
 var serviceCollection = LimanFactory.CreateServiceCollection();

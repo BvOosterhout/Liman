@@ -16,7 +16,7 @@ namespace Liman.Tests
         public void Transient_CreatesNewInstanceForEveryCall()
         {
             // Arrange
-            serviceCollection.Add(typeof(MyServiceImplementation), LimanImplementationLifetime.Transient);
+            serviceCollection.Add(typeof(MyServiceImplementation), LimanServiceLifetime.Transient);
             var serviceProvider = LimanFactory.CreateServiceProvider(serviceCollection);
 
             // Act
@@ -28,9 +28,9 @@ namespace Liman.Tests
         }
 
         [Theory()]
-        [InlineData(LimanImplementationLifetime.Singleton)]
-        [InlineData(LimanImplementationLifetime.Application)]
-        public void NonTransient_ReusesInstances(LimanImplementationLifetime lifetime)
+        [InlineData(LimanServiceLifetime.Singleton)]
+        [InlineData(LimanServiceLifetime.Application)]
+        public void NonTransient_ReusesInstances(LimanServiceLifetime lifetime)
         {
             // Arrange
             serviceCollection.Add(typeof(MyServiceImplementation), lifetime);
@@ -45,9 +45,9 @@ namespace Liman.Tests
         }
 
         [Theory()]
-        [InlineData(LimanImplementationLifetime.Singleton)]
-        [InlineData(LimanImplementationLifetime.Application)]
-        public void NonTransient_DifferentScopes_ReusesInstances(LimanImplementationLifetime lifetime)
+        [InlineData(LimanServiceLifetime.Singleton)]
+        [InlineData(LimanServiceLifetime.Application)]
+        public void NonTransient_DifferentScopes_ReusesInstances(LimanServiceLifetime lifetime)
         {
             // Arrange
             var serviceType = typeof(MyServiceImplementation);
@@ -65,9 +65,9 @@ namespace Liman.Tests
         }
 
         [Theory]
-        [InlineData(LimanImplementationLifetime.Scoped)]
-        [InlineData(LimanImplementationLifetime.Any)]
-        public void Scoped_RequiresScope(LimanImplementationLifetime lifetime)
+        [InlineData(LimanServiceLifetime.Scoped)]
+        [InlineData(LimanServiceLifetime.Any)]
+        public void Scoped_RequiresScope(LimanServiceLifetime lifetime)
         {
             // Arrange
             Type serviceType = PrepareScopedImplementation(lifetime);
@@ -81,9 +81,9 @@ namespace Liman.Tests
         }
 
         [Theory]
-        [InlineData(LimanImplementationLifetime.Scoped)]
-        [InlineData(LimanImplementationLifetime.Any)]
-        public void Scoped_ReusesInstanceWithinScope(LimanImplementationLifetime lifetime)
+        [InlineData(LimanServiceLifetime.Scoped)]
+        [InlineData(LimanServiceLifetime.Any)]
+        public void Scoped_ReusesInstanceWithinScope(LimanServiceLifetime lifetime)
         {
             // Arrange
             Type serviceType = PrepareScopedImplementation(lifetime);
@@ -99,9 +99,9 @@ namespace Liman.Tests
         }
 
         [Theory]
-        [InlineData(LimanImplementationLifetime.Scoped)]
-        [InlineData(LimanImplementationLifetime.Any)]
-        public void Scoped_CreatesNewInstanceForEachScope(LimanImplementationLifetime lifetime)
+        [InlineData(LimanServiceLifetime.Scoped)]
+        [InlineData(LimanServiceLifetime.Any)]
+        public void Scoped_CreatesNewInstanceForEachScope(LimanServiceLifetime lifetime)
         {
             // Arrange
             Type serviceType = PrepareScopedImplementation(lifetime);
@@ -117,18 +117,18 @@ namespace Liman.Tests
             service1.Should().NotBeSameAs(service2);
         }
 
-        private Type PrepareScopedImplementation(LimanImplementationLifetime lifetime)
+        private Type PrepareScopedImplementation(LimanServiceLifetime lifetime)
         {
             Type serviceType;
-            serviceCollection.Add(typeof(MyServiceImplementation), LimanImplementationLifetime.Scoped);
+            serviceCollection.Add(typeof(MyServiceImplementation), LimanServiceLifetime.Scoped);
 
-            if (lifetime == LimanImplementationLifetime.Scoped)
+            if (lifetime == LimanServiceLifetime.Scoped)
             {
                 serviceType = typeof(MyServiceImplementation);
             }
-            else if (lifetime == LimanImplementationLifetime.Any)
+            else if (lifetime == LimanServiceLifetime.Any)
             {
-                serviceCollection.Add(typeof(MyDependentServiceImplementation), LimanImplementationLifetime.Any);
+                serviceCollection.Add(typeof(MyDependentServiceImplementation), LimanServiceLifetime.Any);
                 serviceType = typeof(MyDependentServiceImplementation);
             }
             else

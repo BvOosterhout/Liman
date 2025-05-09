@@ -1,6 +1,6 @@
 ﻿namespace Liman.Tests.AssemblyInject
 {
-    [LimanImplementation]
+    [LimanService]
     internal class AssemblyServiceImplementation : IAssemblyService
     {
     }
