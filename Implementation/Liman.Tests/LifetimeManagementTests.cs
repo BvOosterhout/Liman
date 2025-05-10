@@ -257,7 +257,7 @@ namespace Liman.Tests
             }
         }
 
-        public class MyChildService(LifetimeLog log): MyLifetimeLogger(log)
+        public class MyChildService(LifetimeLog log) : MyLifetimeLogger(log)
         {
         }
 

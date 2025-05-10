@@ -1,5 +1,4 @@
-﻿using Liman.Implementation.Lifetimes;
-using Liman.Implementation.ServiceProviders;
+﻿using Liman.Implementation.ServiceProviders;
 
 namespace Liman.Implementation
 {
