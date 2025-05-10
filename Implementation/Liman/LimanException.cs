@@ -1,10 +1,6 @@
 ﻿namespace Liman
 {
-    public class LimanException : Exception
+    public class LimanException(string message) : Exception(message)
     {
-        public LimanException(string message)
-            : base(message)
-        {
-        }
     }
 }

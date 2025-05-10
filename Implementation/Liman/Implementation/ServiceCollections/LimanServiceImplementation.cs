@@ -9,7 +9,7 @@ namespace Liman.Implementation.ServiceCollections
             Type = type;
             Lifetime = lifetime;
 
-            FactoryMethod = factoryMethod?.Method ?? GetConstructor(type);
+            FactoryMethod = factoryMethod?.Method ?? (MethodBase)GetConstructor(type);
             FactoryMethodInstance = factoryMethod?.Target;
 
             var usedServices = new List<Type>();
@@ -57,7 +57,7 @@ namespace Liman.Implementation.ServiceCollections
             }
         }
 
-        private static MethodBase GetConstructor(Type type)
+        private static ConstructorInfo GetConstructor(Type type)
         {
             var constructors = type.GetConstructors();
             if (constructors.Length == 1)

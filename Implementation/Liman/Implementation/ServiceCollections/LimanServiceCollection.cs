@@ -1,5 +1,7 @@
 ﻿using Liman;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -9,11 +11,11 @@ namespace Liman.Implementation.ServiceCollections
     [LimanService(LimanServiceLifetime.Singleton)]
     internal class LimanServiceCollection : ILimanServiceCollection
     {
-        private Dictionary<Type, List<LimanServiceImplementation>> implementationsByService = new();
-        private Dictionary<Type, List<LimanServiceImplementation>> genericImplementationsByService = new();
-        private Dictionary<Type, LimanServiceImplementation> implementationByType = new();
-        private List<LimanServiceImplementation> applicationServices = new();
-        private List<Assembly> addedAssemblies = new();
+        private readonly Dictionary<Type, List<LimanServiceImplementation>> implementationsByService = [];
+        private readonly Dictionary<Type, List<LimanServiceImplementation>> genericImplementationsByService = [];
+        private readonly Dictionary<Type, LimanServiceImplementation> implementationByType = [];
+        private readonly List<LimanServiceImplementation> applicationServices = [];
+        private readonly List<Assembly> addedAssemblies = [];
 
         public LimanServiceCollection()
         {
@@ -30,7 +32,7 @@ namespace Liman.Implementation.ServiceCollections
 
         public void Add(Type implementationType, LimanServiceLifetime lifetime, Delegate? constructor = null)
         {
-            Add(implementationType, lifetime, Enumerable.Empty<Type>(), constructor);
+            Add(implementationType, lifetime, [], constructor);
         }
 
         public void Add(Type implementationType, LimanServiceLifetime lifetime, IEnumerable<Type> serviceTypes, Delegate? constructor = null)
@@ -259,7 +261,7 @@ namespace Liman.Implementation.ServiceCollections
             }
         }
 
-        private object CreateClassicInstance(IServiceProvider serviceProvider, LimanServiceImplementation implementation)
+        private static object CreateClassicInstance(IServiceProvider serviceProvider, LimanServiceImplementation implementation)
         {
             var arguments = implementation.ServiceParameters
                 .Select(x => serviceProvider.GetRequiredService(x))
@@ -370,32 +372,28 @@ namespace Liman.Implementation.ServiceCollections
             }
         }
 
-        private LimanServiceLifetime ToLifetime(ServiceLifetime classicLifetime)
+        private static LimanServiceLifetime ToLifetime(ServiceLifetime classicLifetime)
         {
-            switch (classicLifetime)
+            return classicLifetime switch
             {
-                case ServiceLifetime.Singleton: return LimanServiceLifetime.Singleton;
-                case ServiceLifetime.Scoped: return LimanServiceLifetime.Scoped;
-                case ServiceLifetime.Transient: return LimanServiceLifetime.Transient;
-                default: throw new LimanException($"Classic service lifetime '{classicLifetime}' is not supported");
-            }
+                ServiceLifetime.Singleton => LimanServiceLifetime.Singleton,
+                ServiceLifetime.Scoped => LimanServiceLifetime.Scoped,
+                ServiceLifetime.Transient => LimanServiceLifetime.Transient,
+                _ => throw new LimanException($"Classic service lifetime '{classicLifetime}' is not supported"),
+            };
         }
 
         private ServiceLifetime ToLifetime(LimanServiceImplementation implementation)
         {
             var effectiveLifetime = GetEffectiveLifetime(implementation);
 
-            switch (effectiveLifetime)
+            return effectiveLifetime switch
             {
-                case LimanServiceLifetime.Singleton:
-                case LimanServiceLifetime.Application:
-                    return ServiceLifetime.Singleton;
-                case LimanServiceLifetime.Scoped:
-                    return ServiceLifetime.Scoped;
-                case LimanServiceLifetime.Transient:
-                    return ServiceLifetime.Transient;
-                default: throw new InvalidOperationException($"Lifetime '{effectiveLifetime}' cannot be an effective service lifetime");
-            }
+                LimanServiceLifetime.Singleton or LimanServiceLifetime.Application => ServiceLifetime.Singleton,
+                LimanServiceLifetime.Scoped => ServiceLifetime.Scoped,
+                LimanServiceLifetime.Transient => ServiceLifetime.Transient,
+                _ => throw new InvalidOperationException($"Lifetime '{effectiveLifetime}' cannot be an effective service lifetime"),
+            };
         }
 
         private void Add(LimanServiceImplementation implementation, IEnumerable<Type> serviceTypes)

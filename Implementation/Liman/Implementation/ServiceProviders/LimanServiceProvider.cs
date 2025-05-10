@@ -6,20 +6,12 @@ using System;
 namespace Liman.Implementation.ServiceProviders
 {
     [LimanService(LimanServiceLifetime.Transient)]
-    internal class LimanServiceProvider : ILimanServiceProvider, IDependency
+    internal class LimanServiceProvider(
+        IServiceFactoryProvider serviceFactoryProvider,
+        ILimanServiceLifetimeManager lifetimeManager) : ILimanServiceProvider, IDependency
     {
-        private readonly IServiceFactoryProvider serviceFactoryProvider;
-        private readonly ILimanServiceLifetimeManager lifetimeManager;
         private IServiceScope? scope;
         private object? user;
-
-        public LimanServiceProvider(
-            IServiceFactoryProvider serviceFactoryProvider,
-            ILimanServiceLifetimeManager lifetimeManager)
-        {
-            this.serviceFactoryProvider = serviceFactoryProvider;
-            this.lifetimeManager = lifetimeManager;
-        }
 
         public object? GetService(Type serviceType)
         {

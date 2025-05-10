@@ -3,19 +3,12 @@
 namespace Liman.Implementation.Lifetimes
 {
     [LimanService(LimanServiceLifetime.Singleton)]
-    internal class LimanServiceLifetimeManager : ILimanServiceLifetimeManager
+    internal class LimanServiceLifetimeManager(ILimanServiceCollection serviceImplementationRepository) : ILimanServiceLifetimeManager
     {
-        private readonly ILimanServiceCollection serviceCollection;
-        private readonly List<object> singletons = new();
-        private readonly Dictionary<object, List<object>> usersByTransient = new();
-        private readonly Dictionary<object, List<object>> transientsByUser = new();
-        private readonly Dictionary<Type, bool> needsCleanupByType = new();
-
-
-        public LimanServiceLifetimeManager(ILimanServiceCollection serviceImplementationRepository)
-        {
-            this.serviceCollection = serviceImplementationRepository;
-        }
+        private readonly List<object> singletons = [];
+        private readonly Dictionary<object, List<object>> usersByTransient = [];
+        private readonly Dictionary<object, List<object>> transientsByUser = [];
+        private readonly Dictionary<Type, bool> needsCleanupByType = [];
 
         public void AddSingleton(object singleton)
         {
@@ -102,7 +95,7 @@ namespace Liman.Implementation.Lifetimes
             {
                 result = true;
             }
-            else if (serviceCollection.TryGetSingle(type, out var implementationType))
+            else if (serviceImplementationRepository.TryGetSingle(type, out var implementationType))
             {
                 foreach (var service in implementationType.ServiceParameters)
                 {

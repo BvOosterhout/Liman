@@ -1,10 +1,32 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <Version>1.0.0-rc1</Version>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Title>Liman</Title>
+    <Authors>BoydVanOosterhout</Authors>
+    <Company />
+    <Description>A dependency injection library with lifetime management. Mark your service implementations with an attribute and they will be automatically added to the service collection. When these services are no longer needed, they will be automatically disposed of.</Description>
+    <PackageProjectUrl>https://github.com/BvOosterhout/Liman</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryUrl>https://github.com/BvOosterhout/Liman.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>Dependency Injection DI Lifetime Management</PackageTags>
+    <PackageOutputPath>packages\</PackageOutputPath>
+    <NeutralLanguage>en</NeutralLanguage>
+    <PackageLicenseExpression>Unlicense</PackageLicenseExpression>
+    <EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.3" />

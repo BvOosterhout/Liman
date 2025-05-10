@@ -3,19 +3,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Liman.Implementation.ServiceFactories
 {
-    internal class SingletonServiceFactory : ServiceFactoryBase
+    internal class SingletonServiceFactory(
+        IServiceFactoryProvider serviceFactoryProvider,
+        ILimanServiceLifetimeManager serviceLifetimeManager,
+        ILimanServiceImplementation implementationType) : ServiceFactoryBase(serviceFactoryProvider, implementationType)
     {
-        private readonly ILimanServiceLifetimeManager serviceLifetimeManager;
         private object? instance;
-
-        public SingletonServiceFactory(
-            IServiceFactoryProvider serviceFactoryProvider,
-            ILimanServiceLifetimeManager serviceLifetimeManager,
-            ILimanServiceImplementation implementationType)
-            : base(serviceFactoryProvider, implementationType)
-        {
-            this.serviceLifetimeManager = serviceLifetimeManager;
-        }
 
         public override LimanServiceLifetime Lifetime { get; } = LimanServiceLifetime.Singleton;
 

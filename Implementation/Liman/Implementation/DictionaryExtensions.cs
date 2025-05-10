@@ -7,7 +7,7 @@
         {
             if (!dictionary.TryGetValue(key, out var items))
             {
-                items = new List<TItem>();
+                items = [];
                 dictionary.Add(key, items);
             }
 

@@ -2,19 +2,11 @@
 
 namespace Liman.Implementation.ServiceFactories
 {
-    internal abstract class ServiceFactoryBase : IServiceFactory
+    internal abstract class ServiceFactoryBase(
+        IServiceFactoryProvider serviceFactoryProvider,
+        ILimanServiceImplementation implementationType) : IServiceFactory
     {
-        private readonly IServiceFactoryProvider serviceFactoryProvider;
-
-        public ServiceFactoryBase(
-            IServiceFactoryProvider serviceFactoryProvider,
-            ILimanServiceImplementation implementationType)
-        {
-            this.serviceFactoryProvider = serviceFactoryProvider;
-            ImplementationType = implementationType;
-        }
-
-        public ILimanServiceImplementation ImplementationType { get; }
+        public ILimanServiceImplementation ImplementationType { get; } = implementationType;
         public abstract LimanServiceLifetime Lifetime { get; }
         public abstract object? Get(IServiceScope? scope, object?[] customArguments);
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Liman
 {
-    internal interface ILimanRunnableAsync
+    public interface ILimanRunnableAsync
     {
         public Task Run();
 

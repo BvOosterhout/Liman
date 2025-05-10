@@ -46,7 +46,7 @@ namespace Liman.Implementation
                 int arityIndex = type.Name.IndexOf('`');
                 if (arityIndex == -1) throw new InvalidOperationException();
 
-                stringBuilder.Append(type.Name.Substring(0, arityIndex));
+                stringBuilder.Append(type.Name.AsSpan(0, arityIndex));
                 stringBuilder.Append('<');
 
                 bool isFirst = true;

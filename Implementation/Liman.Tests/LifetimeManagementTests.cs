@@ -6,7 +6,7 @@ namespace Liman.Tests
 {
     public class LifetimeManagementTests
     {
-        private ILimanServiceCollection serviceCollection;
+        private readonly ILimanServiceCollection serviceCollection;
 
         public LifetimeManagementTests()
         {
@@ -62,6 +62,27 @@ namespace Liman.Tests
             // Assert
             var lifetimeLog = serviceProvider.GetRequiredService<LifetimeLog>();
             lifetimeLog.Should().ContainSingle(item => item.Action == LifetimeLogAction.Run && item.Service.GetType() == typeof(MyRunnableService));
+        }
+
+        [Fact]
+        public void Application_RunsRunnableAsyncApplicationServices()
+        {
+            // Arrange
+            serviceCollection.Add(typeof(MyAsyncRunnable1), LimanServiceLifetime.Application);
+            serviceCollection.Add(typeof(MyAsyncRunnable2), LimanServiceLifetime.Application);
+            var application = LimanFactory.CreateApplication(serviceCollection);
+            var serviceProvider = application.ServiceProvider;
+            var runnable1 = serviceProvider.GetRequiredService<MyAsyncRunnable1>();
+            var runnable2 = serviceProvider.GetRequiredService<MyAsyncRunnable2>();
+
+            // Act
+            application.Run();
+
+            // Assert
+            runnable1.IsRunning.Should().BeFalse();
+            runnable1.RunCount.Should().Be(1);
+            runnable2.IsRunning.Should().BeFalse();
+            runnable2.RunCount.Should().Be(1);
         }
 
         [Theory]
@@ -170,21 +191,15 @@ namespace Liman.Tests
             Disposed
         }
 
-        public class LifetimeLogItem
+        public class LifetimeLogItem(LifetimeLogAction action, object service)
         {
-            public LifetimeLogItem(LifetimeLogAction action, object service)
-            {
-                Action = action;
-                Service = service;
-            }
-
-            public LifetimeLogAction Action { get; }
-            public object Service { get; }
+            public LifetimeLogAction Action { get; } = action;
+            public object Service { get; } = service;
         }
 
         public class LifetimeLog : IEnumerable<LifetimeLogItem>
         {
-            private readonly List<LifetimeLogItem> items = new();
+            private readonly List<LifetimeLogItem> items = [];
 
             public void Log(LifetimeLogAction action, object service)
             {
@@ -225,15 +240,12 @@ namespace Liman.Tests
             public void Dispose()
             {
                 log.Log(LifetimeLogAction.Disposed, this);
+                GC.SuppressFinalize(this);
             }
         }
 
-        public class MyRunnableService : MyLifetimeLogger, ILimanRunnable
+        public class MyRunnableService(LifetimeLog log) : MyLifetimeLogger(log), ILimanRunnable
         {
-            public MyRunnableService(LifetimeLog log) : base(log)
-            {
-            }
-
             public void Run()
             {
                 log.Log(LifetimeLogAction.Run, this);
@@ -245,31 +257,18 @@ namespace Liman.Tests
             }
         }
 
-        public class MyChildService : MyLifetimeLogger
+        public class MyChildService(LifetimeLog log): MyLifetimeLogger(log)
         {
-            public MyChildService(LifetimeLog log) : base(log)
-            {
-            }
         }
 
-        public class MyParentService : MyLifetimeLogger
+        public class MyParentService(LifetimeLog log, MyChildService child) : MyLifetimeLogger(log)
         {
-            public MyParentService(LifetimeLog log, MyChildService child) : base(log)
-            {
-                Child = child;
-            }
-
-            public MyChildService Child { get; }
+            public MyChildService Child { get; } = child;
         }
 
-        public class MyNode : MyLifetimeLogger
+        public class MyNode(LifetimeLog log, ILimanServiceProvider serviceProvider) : MyLifetimeLogger(log)
         {
-            private readonly ILimanServiceProvider serviceProvider;
-
-            public MyNode(LifetimeLog log, ILimanServiceProvider serviceProvider) : base(log)
-            {
-                this.serviceProvider = serviceProvider;
-            }
+            private readonly ILimanServiceProvider serviceProvider = serviceProvider;
 
             public MyNode CreateChild()
             {
@@ -279,6 +278,40 @@ namespace Liman.Tests
             public void DeleteChild(MyNode child)
             {
                 serviceProvider.RemoveService(child);
+            }
+        }
+
+        public class MyAsyncRunnable1 : ILimanRunnableAsync
+        {
+            public bool IsRunning { get; private set; } = false;
+            public int RunCount { get; private set; } = 0;
+
+            public async Task Run()
+            {
+                IsRunning = true;
+            }
+
+            public void Stop()
+            {
+                RunCount++;
+                IsRunning = false;
+            }
+        }
+
+        public class MyAsyncRunnable2 : ILimanRunnableAsync
+        {
+            public bool IsRunning { get; private set; } = false;
+            public int RunCount { get; private set; } = 0;
+
+            public async Task Run()
+            {
+                IsRunning = true;
+            }
+
+            public void Stop()
+            {
+                RunCount++;
+                IsRunning = false;
             }
         }
     }

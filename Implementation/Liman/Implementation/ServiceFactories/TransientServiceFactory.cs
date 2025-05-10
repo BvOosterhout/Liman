@@ -3,28 +3,18 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Liman.Implementation.ServiceFactories
 {
-    internal class TransientServiceFactory : ServiceFactoryBase
+    internal class TransientServiceFactory(
+        IServiceFactoryProvider serviceFactoryProvider,
+        ILimanServiceLifetimeManager serviceLifetimeManager,
+        ILimanServiceImplementation implementationType) : ServiceFactoryBase(serviceFactoryProvider, implementationType)
     {
         private IServiceFactory[]? dependencyFactories;
-        private readonly ILimanServiceLifetimeManager serviceLifetimeManager;
-
-        public TransientServiceFactory(
-            IServiceFactoryProvider serviceFactoryProvider,
-            ILimanServiceLifetimeManager serviceLifetimeManager,
-            ILimanServiceImplementation implementationType)
-            : base(serviceFactoryProvider, implementationType)
-        {
-            this.serviceLifetimeManager = serviceLifetimeManager;
-        }
 
         public override LimanServiceLifetime Lifetime { get; } = LimanServiceLifetime.Transient;
 
         protected override IServiceFactory[] GetDependencyFactories()
         {
-            if (dependencyFactories == null)
-            {
-                dependencyFactories = base.GetDependencyFactories();
-            }
+            dependencyFactories ??= base.GetDependencyFactories();
 
             return dependencyFactories;
         }

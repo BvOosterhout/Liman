@@ -5,7 +5,7 @@ namespace Liman.Tests
 {
     public class LifetimeTests
     {
-        private ILimanServiceCollection serviceCollection;
+        private readonly ILimanServiceCollection serviceCollection;
 
         public LifetimeTests()
         {
@@ -143,13 +143,9 @@ namespace Liman.Tests
         {
         }
 
-        public class MyDependentServiceImplementation
+        public class MyDependentServiceImplementation(MyServiceImplementation service)
         {
-            public MyDependentServiceImplementation(MyServiceImplementation service)
-            {
-                Service = service;
-            }
-            public MyServiceImplementation Service { get; }
+            public MyServiceImplementation Service { get; } = service;
         }
     }
 }

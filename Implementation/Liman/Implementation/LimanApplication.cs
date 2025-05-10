@@ -3,16 +3,11 @@ using Liman.Implementation.ServiceProviders;
 
 namespace Liman.Implementation
 {
-    internal class LimanApplication : ILimanApplication
+    internal class LimanApplication(ILimanServiceProvider serviceProvider) : ILimanApplication
     {
-        private readonly LimanServiceProvider serviceProvider;
-        private ILimanRunnable? runnable;
-
-        public LimanApplication(ILimanServiceProvider serviceProvider)
-        {
-            this.serviceProvider = serviceProvider as LimanServiceProvider
+        private readonly LimanServiceProvider serviceProvider = serviceProvider as LimanServiceProvider
                 ?? throw new InvalidOperationException();
-        }
+        private ILimanRunnable? runnable;
 
         public ILimanServiceProvider ServiceProvider { get => serviceProvider; }
 

@@ -3,22 +3,17 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Liman.Implementation.Scopes
 {
-    internal class LimanServiceScope : IServiceScope
+    internal class LimanServiceScope(IServiceProvider serviceProvider) : IServiceScope
     {
-        private List<ScopedServiceFactory> registeredFactories = new();
+        private readonly List<ScopedServiceFactory> registeredFactories = [];
 
-        public LimanServiceScope(IServiceProvider serviceProvider)
-        {
-            ServiceProvider = serviceProvider;
-        }
-
-        public IServiceProvider ServiceProvider { get; }
+        public IServiceProvider ServiceProvider { get; } = serviceProvider;
 
         public void Dispose()
         {
             foreach (var factory in registeredFactories)
             {
-                var instance = factory.Remove(this);
+                factory.Remove(this);
             }
 
             registeredFactories.Clear();

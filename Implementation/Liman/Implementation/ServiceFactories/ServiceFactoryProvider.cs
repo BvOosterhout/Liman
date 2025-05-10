@@ -5,12 +5,12 @@ namespace Liman.Implementation.ServiceFactories
     [LimanService(LimanServiceLifetime.Singleton)]
     internal class ServiceFactoryProvider : IServiceFactoryProvider
     {
-        private readonly Dictionary<Type, IServiceFactory> factoryByServiceType = new();
+        private readonly Dictionary<Type, IServiceFactory> factoryByServiceType = [];
         private readonly ILimanServiceCollection serviceImplementationRepository;
         private readonly ILimanServiceLifetimeManager serviceCollection;
         private readonly bool validate;
-        private readonly List<ILimanServiceImplementation> creationsInProgress = new();
-        private readonly List<ILimanInitializable> uninitialized = new();
+        private readonly List<ILimanServiceImplementation> creationsInProgress = [];
+        private readonly List<ILimanInitializable> uninitialized = [];
 
         public ServiceFactoryProvider(
             ILimanServiceCollection serviceCollection,
@@ -56,8 +56,6 @@ namespace Liman.Implementation.ServiceFactories
 
         public IEnumerable<IServiceFactory> GetApplicationServices()
         {
-            var implementations = serviceImplementationRepository.GetApplicationImplementations();
-
             foreach (var implementation in serviceImplementationRepository.GetApplicationImplementations())
             {
                 yield return Get(implementation.Type);
@@ -107,7 +105,7 @@ namespace Liman.Implementation.ServiceFactories
         {
             lock (creationsInProgress)
             {
-                if (creationsInProgress[creationsInProgress.Count - 1] != serviceImplementation) throw new InvalidOperationException();
+                if (creationsInProgress[^1] != serviceImplementation) throw new InvalidOperationException();
                 creationsInProgress.RemoveAt(creationsInProgress.Count - 1);
             }
 
@@ -131,18 +129,13 @@ namespace Liman.Implementation.ServiceFactories
 
             var effectiveLifetime = serviceImplementationRepository.GetEffectiveLifetime(implementationType);
 
-            switch (effectiveLifetime)
+            return effectiveLifetime switch
             {
-                case LimanServiceLifetime.Singleton:
-                case LimanServiceLifetime.Application:
-                    return new SingletonServiceFactory(this, serviceCollection, implementationType);
-                case LimanServiceLifetime.Transient:
-                    return new TransientServiceFactory(this, serviceCollection, implementationType);
-                case LimanServiceLifetime.Scoped:
-                    return new ScopedServiceFactory(this, serviceCollection, implementationType);
-                default:
-                    throw new InvalidOperationException();
-            }
+                LimanServiceLifetime.Singleton or LimanServiceLifetime.Application => new SingletonServiceFactory(this, serviceCollection, implementationType),
+                LimanServiceLifetime.Transient => new TransientServiceFactory(this, serviceCollection, implementationType),
+                LimanServiceLifetime.Scoped => new ScopedServiceFactory(this, serviceCollection, implementationType),
+                _ => throw new InvalidOperationException(),
+            };
         }
 
         private void InitializeAll()
@@ -158,7 +151,7 @@ namespace Liman.Implementation.ServiceFactories
                         return;
                     }
 
-                    servicesToInitialize = new List<ILimanInitializable>(uninitialized);
+                    servicesToInitialize = [.. uninitialized];
                     uninitialized.Clear();
                 }
 

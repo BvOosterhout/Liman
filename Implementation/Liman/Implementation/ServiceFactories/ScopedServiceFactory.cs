@@ -4,29 +4,19 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Liman.Implementation.ServiceFactories
 {
-    internal class ScopedServiceFactory : ServiceFactoryBase
+    internal class ScopedServiceFactory(
+        IServiceFactoryProvider serviceFactoryProvider,
+        ILimanServiceLifetimeManager serviceLifetimeManager,
+        ILimanServiceImplementation implementationType) : ServiceFactoryBase(serviceFactoryProvider, implementationType)
     {
-        private readonly Dictionary<IServiceScope, object> instanceByScope = new();
-        private readonly ILimanServiceLifetimeManager serviceLifetimeManager;
+        private readonly Dictionary<IServiceScope, object> instanceByScope = [];
         private IServiceFactory[]? dependencyFactories;
 
         public override LimanServiceLifetime Lifetime { get; } = LimanServiceLifetime.Scoped;
 
-        public ScopedServiceFactory(
-            IServiceFactoryProvider serviceFactoryProvider,
-            ILimanServiceLifetimeManager serviceLifetimeManager,
-            ILimanServiceImplementation implementationType)
-            : base(serviceFactoryProvider, implementationType)
-        {
-            this.serviceLifetimeManager = serviceLifetimeManager;
-        }
-
         protected override IServiceFactory[] GetDependencyFactories()
         {
-            if (dependencyFactories == null)
-            {
-                dependencyFactories = base.GetDependencyFactories();
-            }
+            dependencyFactories ??= base.GetDependencyFactories();
 
             return dependencyFactories;
         }
