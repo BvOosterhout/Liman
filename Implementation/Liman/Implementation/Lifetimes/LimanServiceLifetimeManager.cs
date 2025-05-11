@@ -32,16 +32,16 @@ namespace Liman.Implementation.Lifetimes
             }
         }
 
-        public void DeleteTransientDependency(object user, object transient)
+        public void DeleteTransientDependency(object user, object dependency)
         {
-            if (usersByTransient.TryGetValue(transient, out var users) && users.Remove(user))
+            if (usersByTransient.TryGetValue(dependency, out var users) && users.Remove(user))
             {
-                transientsByUser.RemoveItem(user, transient);
+                transientsByUser.RemoveItem(user, dependency);
 
                 if (users.Count == 0)
                 {
-                    usersByTransient.Remove(transient);
-                    Delete(transient);
+                    usersByTransient.Remove(dependency);
+                    Delete(dependency);
                 }
             }
         }
@@ -73,6 +73,16 @@ namespace Liman.Implementation.Lifetimes
             if (implementation is IDisposable disposable)
             {
                 disposable.Dispose();
+            }
+
+            if (usersByTransient.TryGetValue(implementation, out var users))
+            {
+                foreach (var user in users.ToImmutableArray())
+                {
+                    transientsByUser.RemoveItem(user, implementation);
+                }
+
+                usersByTransient.Remove(implementation);
             }
 
             if (transientsByUser.TryGetValue(implementation, out var transients))

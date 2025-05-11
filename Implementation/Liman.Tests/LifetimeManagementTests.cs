@@ -195,6 +195,11 @@ namespace Liman.Tests
         {
             public LifetimeLogAction Action { get; } = action;
             public object Service { get; } = service;
+
+            public override string ToString()
+            {
+                return $"{Action} - {Service.GetType().Name} - {Service}";
+            }
         }
 
         public class LifetimeLog : IEnumerable<LifetimeLogItem>
@@ -268,7 +273,10 @@ namespace Liman.Tests
 
         public class MyNode(LifetimeLog log, ILimanServiceProvider serviceProvider) : MyLifetimeLogger(log)
         {
+            private static int nextId = 1;
             private readonly ILimanServiceProvider serviceProvider = serviceProvider;
+
+            public int Id { get; } = nextId++;
 
             public MyNode CreateChild()
             {
@@ -278,6 +286,11 @@ namespace Liman.Tests
             public void DeleteChild(MyNode child)
             {
                 serviceProvider.RemoveService(child);
+            }
+
+            public override string ToString()
+            {
+                return $"MyNode{Id}";
             }
         }
 

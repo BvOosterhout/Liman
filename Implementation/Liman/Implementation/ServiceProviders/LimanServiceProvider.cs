@@ -107,7 +107,10 @@ namespace Liman.Implementation.ServiceProviders
 
         public void Dispose()
         {
-            lifetimeManager.DeleteAllServices();
+            if (user == null && scope == null)
+            {
+                lifetimeManager.DeleteAllServices();
+            }
         }
     }
 }
