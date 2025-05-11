@@ -23,13 +23,13 @@ Constructor injection is the main way to get access to services. This ensures yo
 
 ```csharp
 [LimanService]
-public class MyOtherServiceImplementation
+internal class MyServiceWithInjection
 {
     private IMyService myService;
 
-    public MyOtherServiceImplementation(IMyService myService)
+    public MyServiceWithInjection(IMyService myService)
     {
-        this.myService = myService
+        this.myService = myService;
     }
 }
 ```
@@ -39,7 +39,7 @@ Liman will automatically clean up your disposables when they are no longer used,
 
 ```csharp
 [LimanService]
-public class MyDisposableService : IMyService, IDisposable
+public class MyDisposableService : IMyDisposableService, IDisposable
 {
     public void Dispose()
     {
@@ -50,13 +50,13 @@ public class MyDisposableService : IMyService, IDisposable
 
 ```csharp
 [LimanService]
-public class MyNotDisposableService
+internal class MyNotDisposableService
 {
-    private IMyService myService;
+    private IMyDisposableService myService;
 
-    public MyNotDisposableService(IMyService myService)
+    public MyNotDisposableService(IMyDisposableService myService)
     {
-        this.myService = myService
+        this.myService = myService;
     }
 }
 ```
@@ -76,9 +76,15 @@ It will also automatically load (and run) your application services.
 
 ```csharp
 [LimanService(LimanServiceLifetime.Application)]
-internal class MainApplicationService : ILimanRunnable
+internal class MyApplicationService : ILimanRunnable
 {
+    private readonly IMyService service;
     private bool isRunning = true;
+
+    public MyApplicationService(IMyService service)
+    {
+        this.service = service;
+    }
 
     public void Run()
     {
@@ -94,7 +100,7 @@ internal class MainApplicationService : ILimanRunnable
             }
             else
             {
-                Console.WriteLine("Nice day for fishing, ain't it!?");
+                service.DoSomething();
             }
         }
     }
@@ -148,22 +154,26 @@ In some cases you may need dependency injection and arguments in the same constr
 Keep in mind that you have to put your custom parameters at the end of the constructor. And when creating the service, you need to enter the arguments in the same order.
 
 ```csharp
-[LimanService]
-public class MyServiceImplementation : IMyService
+[LimanService(LimanServiceLifetime.Transient)]
+internal class CustomParametersService(IMyService aService, [NoInjection] string name)
 {
-    public MyServiceImplementation(IMyOtherService otherService, [NoInjection]string customArgument)
-    {
-    }
+    public IMyService AService { get; } = aService;
+    public string Name { get; } = name;
 }
 ```
 
 ```csharp
 [LimanService]
-public class MyUserService 
+internal class CustomParametersFactory(ILimanServiceProvider serviceProvider)
 {
-    public MyServiceImplementation(ILimanServiceProvider serviceProvider)
+    public CustomParametersService Create(string name)
     {
-        var myService = serviceProvider.GetRequiredService<IMyService>("CustomArgument");
+        return serviceProvider.GetRequiredService<CustomParametersService>(name);
+    }
+
+    public void Delete(CustomParametersService serviceToDelete)
+    {
+        serviceProvider.RemoveService(serviceToDelete);
     }
 }
 ```
