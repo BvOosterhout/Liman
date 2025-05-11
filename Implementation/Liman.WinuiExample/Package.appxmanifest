@@ -15,7 +15,7 @@
   <mp:PhoneIdentity PhoneProductId="db90a3ca-2bc7-4da1-9ec4-4780de748ed6" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>Liman.WinuiExample</DisplayName>
+    <DisplayName>Liman.WinUiExample</DisplayName>
     <PublisherDisplayName>boydv</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
@@ -34,8 +34,8 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="Liman.WinuiExample"
-        Description="Liman.WinuiExample"
+        DisplayName="Liman.WinUiExample"
+        Description="Liman.WinUiExample"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png">
