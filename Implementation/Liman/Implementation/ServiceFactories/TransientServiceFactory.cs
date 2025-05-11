@@ -1,4 +1,5 @@
 ﻿using Liman.Implementation.Lifetimes;
+using Liman.Implementation.ServiceProviders;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Liman.Implementation.ServiceFactories
@@ -21,16 +22,23 @@ namespace Liman.Implementation.ServiceFactories
 
         public override object? Get(IServiceScope? scope, object?[] customArguments)
         {
-            return CreateInstance(scope, customArguments);
+            var instance = CreateInstance(scope, customArguments);
+
+            if (scope != null && instance is LimanServiceProvider serviceProvider)
+            {
+                serviceProvider.SetScope(scope);
+            }
+
+            return instance;
         }
 
-        public override void RegisterUser(object user, object dependencyObject)
+        public override void RegisterUser(object user, object dependency)
         {
-            serviceLifetimeManager.AddTransientDependency(user, dependencyObject);
+            serviceLifetimeManager.AddTransientDependency(user, dependency);
 
-            if (dependencyObject is IDependency dependency)
+            if (dependency is LimanServiceProvider serviceProvider)
             {
-                dependency.RegisterUser(user);
+                serviceProvider.RegisterUser(user);
             }
         }
     }

@@ -20,7 +20,7 @@ namespace Liman.Implementation
 
             // Start main runnable
             var runnables = applicationServices.OfType<ILimanRunnable>().ToList();
-            if (runnables.Count > 1) throw new LimanException("More than one IRunnable service found");
+            if (runnables.Count > 1) throw new LimanException($"More than one {nameof(ILimanRunnable)} service found");
 
             runnable = runnables.FirstOrDefault();
             runnable?.Run();

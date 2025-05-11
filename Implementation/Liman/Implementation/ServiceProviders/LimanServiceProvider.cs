@@ -7,7 +7,7 @@ namespace Liman.Implementation.ServiceProviders
     [LimanService(LimanServiceLifetime.Transient)]
     internal class LimanServiceProvider(
         IServiceFactoryProvider serviceFactoryProvider,
-        ILimanServiceLifetimeManager lifetimeManager) : ILimanServiceProvider, IDependency
+        ILimanServiceLifetimeManager lifetimeManager) : ILimanServiceProvider
     {
         private IServiceScope? scope;
         private object? user;

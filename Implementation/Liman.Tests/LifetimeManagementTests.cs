@@ -183,6 +183,37 @@ namespace Liman.Tests
             lifetimeLog.Should().NotContain(item => item.Action == LifetimeLogAction.Disposed && item.Service == service);
         }
 
+        [Theory]
+        [InlineData(LimanServiceLifetime.Singleton)]
+        [InlineData(LimanServiceLifetime.Application)]
+        [InlineData(LimanServiceLifetime.Any)]
+        [InlineData(LimanServiceLifetime.Scoped)]
+        public void NonTransient_NotDisposedWhenParentIsDeleted(LimanServiceLifetime lifetime)
+        {
+            // Arrange
+            // Arrange
+            serviceCollection.Add(typeof(MyNode), lifetime);
+            var serviceProvider = (IServiceProvider)LimanFactory.CreateServiceProvider(serviceCollection);
+
+            if (lifetime == LimanServiceLifetime.Scoped)
+            {
+                var scope = serviceProvider.CreateScope();
+                serviceProvider = scope.ServiceProvider;
+            }
+
+            // Act
+            var grandParent = serviceProvider.GetRequiredService<MyNode>();
+            var parent = grandParent.CreateChild();
+            var child = parent.CreateChild();
+            grandParent.DeleteChild(parent);
+
+            // Assert
+            var lifetimeLog = serviceProvider.GetRequiredService<LifetimeLog>();
+            lifetimeLog.Should().NotContain(item => item.Action == LifetimeLogAction.Disposed && item.Service == grandParent);
+            lifetimeLog.Should().NotContain(item => item.Action == LifetimeLogAction.Disposed && item.Service == parent);
+            lifetimeLog.Should().NotContain(item => item.Action == LifetimeLogAction.Disposed && item.Service == child);
+        }
+
         public enum LifetimeLogAction
         {
             Construct,
