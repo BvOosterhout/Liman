@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Liman.WinuiExample (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "Liman.WinuiExample (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
