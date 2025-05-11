@@ -4,9 +4,10 @@ Liman is a library for C# that helps with Service **Li**fetime **Man**agement. T
 - Dependency injection
 - Service disposal
 
-- And some other related functionalities
+- And more...
 
 # Main features
+This chapter will give you a brief overview of the main features of Liman. For more detailed information, please check out [the Wiki](https://github.com/BvOosterhout/Liman/wiki/Home).
 
 ## Registration via Attribute
 In Liman, the most common way to register your service implementation will be by adding an attribute to your class. This keeps information about the lifetime of your class inside the file that contains the class. Allowing you to adhere better to the single responsibility principle.
