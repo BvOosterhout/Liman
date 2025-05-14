@@ -6,7 +6,7 @@ namespace Liman.Implementation.ServiceFactories
     internal class SingletonServiceFactory(
         IServiceFactoryProvider serviceFactoryProvider,
         ILimanServiceLifetimeManager serviceLifetimeManager,
-        ILimanServiceImplementation implementationType) : ServiceFactoryBase(serviceFactoryProvider, implementationType)
+        ILimanImplementation implementationType) : ServiceFactoryBase(serviceFactoryProvider, implementationType)
     {
         private object? instance;
 

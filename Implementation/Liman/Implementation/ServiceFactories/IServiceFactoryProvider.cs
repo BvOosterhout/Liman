@@ -3,9 +3,9 @@
     internal interface IServiceFactoryProvider
     {
         IServiceFactory Get(Type serviceType);
-        IServiceFactory[] GetUsedServices(ILimanServiceImplementation parentImplementation);
-        void FinishCreation(ILimanServiceImplementation serviceImplementation, object result);
-        void PrepareCreation(ILimanServiceImplementation serviceImplementation);
+        IServiceFactory[] GetUsedServices(ILimanImplementation parentImplementation);
+        void FinishCreation(ILimanImplementation serviceImplementation, object result);
+        void PrepareCreation(ILimanImplementation serviceImplementation);
         IEnumerable<IServiceFactory> GetApplicationServices();
     }
 }

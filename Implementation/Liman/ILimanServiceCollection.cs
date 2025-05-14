@@ -12,13 +12,14 @@ namespace Liman
         void Add(Assembly assembly, params Type[] exceptions);
 
         // Get methods
-        bool TryGetSingle(Type serviceType, [MaybeNullWhen(false)] out ILimanServiceImplementation serviceImplementation);
-        IEnumerable<ILimanServiceImplementation> GetAll(Type serviceType);
-        IEnumerable<ILimanServiceImplementation> GetApplicationImplementations();
-        LimanServiceLifetime GetEffectiveLifetime(ILimanServiceImplementation implementation);
+        bool TryGetSingle(Type serviceType, [MaybeNullWhen(false)] out ILimanImplementation serviceImplementation);
+        IEnumerable<ILimanImplementation> GetAll(Type serviceType);
+        IEnumerable<ILimanImplementation> GetApplicationImplementations();
+        LimanServiceLifetime GetEffectiveLifetime(ILimanImplementation implementation);
+        IEnumerable<KeyValuePair<Type, ILimanImplementation>> GetAllServiceImplementations();
 
         // Validation methods
-        void Validate(ILimanServiceImplementation implementation);
+        void Validate(ILimanImplementation implementation);
         void Validate(Type serviceType);
         void ValidateAll();
     }

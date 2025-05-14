@@ -9,10 +9,10 @@ namespace Liman.Implementation.ServiceCollections
     [LimanService(LimanServiceLifetime.Singleton)]
     internal class LimanServiceCollection : ILimanServiceCollection
     {
-        private readonly Dictionary<Type, List<LimanServiceImplementation>> implementationsByService = [];
-        private readonly Dictionary<Type, List<LimanServiceImplementation>> genericImplementationsByService = [];
-        private readonly Dictionary<Type, LimanServiceImplementation> implementationByType = [];
-        private readonly List<LimanServiceImplementation> applicationServices = [];
+        private readonly Dictionary<Type, List<LimanImplementation>> implementationsByService = [];
+        private readonly Dictionary<Type, List<LimanImplementation>> genericImplementationsByService = [];
+        private readonly Dictionary<Type, LimanImplementation> implementationByType = [];
+        private readonly List<LimanImplementation> applicationServices = [];
         private readonly List<Assembly> addedAssemblies = [];
 
         public LimanServiceCollection()
@@ -49,7 +49,7 @@ namespace Liman.Implementation.ServiceCollections
                 serviceTypes = serviceTypes.Append(implementationType);
             }
 
-            var implementation = new LimanServiceImplementation(implementationType, lifetime, constructor);
+            var implementation = new LimanImplementation(implementationType, lifetime, constructor);
 
             Add(implementation, serviceTypes);
         }
@@ -77,7 +77,7 @@ namespace Liman.Implementation.ServiceCollections
                     ? () => service.ImplementationInstance
                     : (Delegate?)service.ImplementationFactory;
 
-                implementation = new LimanServiceImplementation(implementationType, ToLifetime(service.Lifetime), factoryMethod);
+                implementation = new LimanImplementation(implementationType, ToLifetime(service.Lifetime), factoryMethod);
             }
 
             if (implementationType.IsGenericTypeDefinition)
@@ -116,7 +116,7 @@ namespace Liman.Implementation.ServiceCollections
             }
         }
 
-        public bool TryGetSingle(Type serviceType, [MaybeNullWhen(false)] out ILimanServiceImplementation serviceImplementation)
+        public bool TryGetSingle(Type serviceType, [MaybeNullWhen(false)] out ILimanImplementation serviceImplementation)
         {
             var implementations = GetAll(serviceType).ToArray();
 
@@ -137,7 +137,7 @@ namespace Liman.Implementation.ServiceCollections
             }
         }
 
-        public IEnumerable<ILimanServiceImplementation> GetAll(Type serviceType)
+        public IEnumerable<ILimanImplementation> GetAll(Type serviceType)
         {
             if (implementationsByService.TryGetValue(serviceType, out var implementations))
             {
@@ -159,7 +159,7 @@ namespace Liman.Implementation.ServiceCollections
 
                         if (!implementationByType.TryGetValue(implementationType, out var implementation))
                         {
-                            implementation = new LimanServiceImplementation(implementationType, genericImplementation.Lifetime, null);
+                            implementation = new LimanImplementation(implementationType, genericImplementation.Lifetime, null);
                             implementationByType.Add(implementationType, implementation);
                         }
 
@@ -169,26 +169,25 @@ namespace Liman.Implementation.ServiceCollections
             }
         }
 
-        public IEnumerable<ILimanServiceImplementation> GetApplicationImplementations()
+        public IEnumerable<KeyValuePair<Type, ILimanImplementation>> GetAllServiceImplementations()
         {
-            return applicationServices;
-        }
-
-        public void ApplyTo(IServiceCollection serviceCollection)
-        {
-            foreach (var keyValue in implementationsByService)
+            foreach  (var keyValue in implementationsByService.Concat(genericImplementationsByService))
             {
                 var serviceType = keyValue.Key;
                 var implementations = keyValue.Value;
-
                 foreach (var implementation in implementations)
                 {
-                    ApplyTo(serviceCollection, serviceType, implementation);
+                    yield return new KeyValuePair<Type, ILimanImplementation>(serviceType, implementation);
                 }
             }
         }
 
-        public LimanServiceLifetime GetEffectiveLifetime(ILimanServiceImplementation implementation)
+        public IEnumerable<ILimanImplementation> GetApplicationImplementations()
+        {
+            return applicationServices;
+        }
+
+        public LimanServiceLifetime GetEffectiveLifetime(ILimanImplementation implementation)
         {
             switch (implementation.Lifetime)
             {
@@ -226,7 +225,7 @@ namespace Liman.Implementation.ServiceCollections
             }
         }
 
-        public void Validate(ILimanServiceImplementation implementation)
+        public void Validate(ILimanImplementation implementation)
         {
             switch (implementation.Lifetime)
             {
@@ -244,31 +243,7 @@ namespace Liman.Implementation.ServiceCollections
             ValidateDependencies(implementation);
         }
 
-
-        private void ApplyTo(IServiceCollection serviceCollection, Type serviceType, LimanServiceImplementation implementation)
-        {
-            if (implementation.CustomParameters.Count > 0) return;
-
-            if (implementation.FactoryMethod.IsConstructor)
-            {
-                serviceCollection.Add(new ServiceDescriptor(serviceType, implementation.Type, ToLifetime(implementation)));
-            }
-            else
-            {
-                serviceCollection.Add(new ServiceDescriptor(serviceType, serviceProvider => CreateClassicInstance(serviceProvider, implementation), ToLifetime(implementation)));
-            }
-        }
-
-        private static object CreateClassicInstance(IServiceProvider serviceProvider, LimanServiceImplementation implementation)
-        {
-            var arguments = implementation.ServiceParameters
-                .Select(x => serviceProvider.GetRequiredService(x))
-                .ToArray();
-
-            return implementation.CreateInstance(arguments);
-        }
-
-        private void ValidateDependencies(ILimanServiceImplementation implementation, Stack<ILimanServiceImplementation>? users = null)
+        private void ValidateDependencies(ILimanImplementation implementation, Stack<ILimanImplementation>? users = null)
         {
             if (users != null)
             {
@@ -297,7 +272,7 @@ namespace Liman.Implementation.ServiceCollections
             if (users.Pop() != implementation) throw new InvalidOperationException();
         }
 
-        private bool HasScopedDependencies(ILimanServiceImplementation implementationType)
+        private bool HasScopedDependencies(ILimanImplementation implementationType)
         {
             foreach (var usedServiceType in implementationType.ServiceParameters)
             {
@@ -317,7 +292,7 @@ namespace Liman.Implementation.ServiceCollections
             return false;
         }
 
-        private IEnumerable<ILimanServiceImplementation> GetScopedDependencies(ILimanServiceImplementation implementationType)
+        private IEnumerable<ILimanImplementation> GetScopedDependencies(ILimanImplementation implementationType)
         {
             foreach (var usedServiceType in implementationType.ServiceParameters)
             {
@@ -381,20 +356,7 @@ namespace Liman.Implementation.ServiceCollections
             };
         }
 
-        private ServiceLifetime ToLifetime(LimanServiceImplementation implementation)
-        {
-            var effectiveLifetime = GetEffectiveLifetime(implementation);
-
-            return effectiveLifetime switch
-            {
-                LimanServiceLifetime.Singleton or LimanServiceLifetime.Application => ServiceLifetime.Singleton,
-                LimanServiceLifetime.Scoped => ServiceLifetime.Scoped,
-                LimanServiceLifetime.Transient => ServiceLifetime.Transient,
-                _ => throw new InvalidOperationException($"Lifetime '{effectiveLifetime}' cannot be an effective service lifetime"),
-            };
-        }
-
-        private void Add(LimanServiceImplementation implementation, IEnumerable<Type> serviceTypes)
+        private void Add(LimanImplementation implementation, IEnumerable<Type> serviceTypes)
         {
             implementationByType.Add(implementation.Type, implementation);
 

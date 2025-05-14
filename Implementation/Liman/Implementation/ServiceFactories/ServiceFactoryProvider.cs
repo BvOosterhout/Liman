@@ -9,7 +9,7 @@ namespace Liman.Implementation.ServiceFactories
         private readonly ILimanServiceCollection serviceImplementationRepository;
         private readonly ILimanServiceLifetimeManager serviceCollection;
         private readonly bool validate;
-        private readonly List<ILimanServiceImplementation> creationsInProgress = [];
+        private readonly List<ILimanImplementation> creationsInProgress = [];
         private readonly List<ILimanInitializable> uninitialized = [];
 
         public ServiceFactoryProvider(
@@ -62,7 +62,7 @@ namespace Liman.Implementation.ServiceFactories
             }
         }
 
-        public IServiceFactory[] GetUsedServices(ILimanServiceImplementation parentImplementation)
+        public IServiceFactory[] GetUsedServices(ILimanImplementation parentImplementation)
         {
             var factories = new IServiceFactory[parentImplementation.ServiceParameters.Count];
 
@@ -88,7 +88,7 @@ namespace Liman.Implementation.ServiceFactories
             return factories;
         }
 
-        public void PrepareCreation(ILimanServiceImplementation serviceImplementation)
+        public void PrepareCreation(ILimanImplementation serviceImplementation)
         {
             lock (creationsInProgress)
             {
@@ -101,7 +101,7 @@ namespace Liman.Implementation.ServiceFactories
             }
         }
 
-        public void FinishCreation(ILimanServiceImplementation serviceImplementation, object result)
+        public void FinishCreation(ILimanImplementation serviceImplementation, object result)
         {
             lock (creationsInProgress)
             {
@@ -120,7 +120,7 @@ namespace Liman.Implementation.ServiceFactories
             InitializeAll();
         }
 
-        private IServiceFactory Create(ILimanServiceImplementation implementationType)
+        private IServiceFactory Create(ILimanImplementation implementationType)
         {
             if (validate)
             {

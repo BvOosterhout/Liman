@@ -2,21 +2,23 @@
 
 namespace Liman.Implementation.ServiceCollections
 {
-    internal class LimanServiceImplementation : ILimanServiceImplementation
+    internal class LimanImplementation : ILimanImplementation
     {
-        public LimanServiceImplementation(Type type, LimanServiceLifetime lifetime, Delegate? factoryMethod)
+        public LimanImplementation(Type type, LimanServiceLifetime lifetime, Delegate? factoryMethod)
         {
             Type = type;
             Lifetime = lifetime;
 
-            FactoryMethod = factoryMethod?.Method ?? (MethodBase)GetConstructor(type);
-            FactoryMethodInstance = factoryMethod?.Target;
+            FactoryMethod = factoryMethod;
+            if (FactoryMethod == null) Constructor = GetConstructor(type);
 
             var usedServices = new List<Type>();
             var customParameters = new List<Type>();
             bool unInjectable = false;
 
-            foreach (var parameter in FactoryMethod.GetParameters())
+            var parameters = factoryMethod?.Method?.GetParameters() ?? Constructor?.GetParameters() ?? [];
+
+            foreach (var parameter in parameters)
             {
                 if (parameter.GetCustomAttribute<NoInjectionAttribute>() != null)
                 {
@@ -41,19 +43,24 @@ namespace Liman.Implementation.ServiceCollections
         public LimanServiceLifetime Lifetime { get; }
         public IReadOnlyList<Type> ServiceParameters { get; }
         public IReadOnlyList<Type> CustomParameters { get; }
-        public MethodBase FactoryMethod { get; }
-        public object? FactoryMethodInstance { get; }
+
+        public Delegate? FactoryMethod { get; }
+        public ConstructorInfo? Constructor { get; }
 
         public object CreateInstance(object?[] arguments)
         {
-            if (FactoryMethod is ConstructorInfo constructor)
+            if (Constructor != null)
             {
-                return constructor.Invoke(arguments);
+                return Constructor.Invoke(arguments);
+            }
+            else if (FactoryMethod != null)
+            {
+                return FactoryMethod.DynamicInvoke(arguments)
+                    ?? throw new LimanException($"Factory method '{FactoryMethod.Method.Name}' for type '{Type}', did not return an instance.");
             }
             else
             {
-                return FactoryMethod.Invoke(FactoryMethodInstance, arguments)
-                    ?? throw new LimanException($"Factory method '{FactoryMethod.Name}' did not return an instance.");
+                throw new InvalidOperationException();
             }
         }
 

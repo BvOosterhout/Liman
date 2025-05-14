@@ -7,7 +7,7 @@ namespace Liman.Implementation.ServiceFactories
     internal class ScopedServiceFactory(
         IServiceFactoryProvider serviceFactoryProvider,
         ILimanServiceLifetimeManager serviceLifetimeManager,
-        ILimanServiceImplementation implementationType) : ServiceFactoryBase(serviceFactoryProvider, implementationType)
+        ILimanImplementation implementationType) : ServiceFactoryBase(serviceFactoryProvider, implementationType)
     {
         private readonly Dictionary<IServiceScope, object> instanceByScope = [];
         private IServiceFactory[]? dependencyFactories;

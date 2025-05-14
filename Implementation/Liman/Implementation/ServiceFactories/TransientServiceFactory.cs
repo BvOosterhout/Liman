@@ -7,7 +7,7 @@ namespace Liman.Implementation.ServiceFactories
     internal class TransientServiceFactory(
         IServiceFactoryProvider serviceFactoryProvider,
         ILimanServiceLifetimeManager serviceLifetimeManager,
-        ILimanServiceImplementation implementationType) : ServiceFactoryBase(serviceFactoryProvider, implementationType)
+        ILimanImplementation implementationType) : ServiceFactoryBase(serviceFactoryProvider, implementationType)
     {
         private IServiceFactory[]? dependencyFactories;
 

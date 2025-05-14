@@ -3,6 +3,7 @@ using Liman.Implementation.Lifetimes;
 using Liman.Implementation.ServiceCollections;
 using Liman.Implementation.ServiceFactories;
 using Liman.Implementation.ServiceProviders;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Liman
 {
@@ -13,7 +14,12 @@ namespace Liman
             return new LimanServiceCollection();
         }
 
-        public static ILimanServiceProvider CreateServiceProvider(ILimanServiceCollection serviceCollection, bool validate = true)
+        public static void ApplyTo(this ILimanServiceCollection serviceCollection, IServiceCollection classicServiceCollection)
+        {
+
+        }
+
+        public static ILimanServiceProvider CreateServiceProvider(this ILimanServiceCollection serviceCollection, bool validate = true)
         {
             if (serviceCollection is LimanServiceCollection implementationRepository)
             {
@@ -28,7 +34,7 @@ namespace Liman
             }
         }
 
-        public static ILimanApplication CreateApplication(ILimanServiceCollection serviceCollection)
+        public static ILimanApplication CreateApplication(this ILimanServiceCollection serviceCollection)
         {
             var serviceProvider = CreateServiceProvider(serviceCollection);
 
