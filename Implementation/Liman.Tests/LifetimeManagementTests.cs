@@ -1,10 +1,11 @@
 ﻿using FluentAssertions;
+using Liman.Tests.Helpers;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections;
 
 namespace Liman.Tests
 {
-    public class LifetimeManagementTests
+    public partial class LifetimeManagementTests
     {
         private readonly ILimanServiceCollection serviceCollection;
 
@@ -214,14 +215,6 @@ namespace Liman.Tests
             lifetimeLog.Should().NotContain(item => item.Action == LifetimeLogAction.Disposed && item.Service == child);
         }
 
-        public enum LifetimeLogAction
-        {
-            Construct,
-            Initialized,
-            Run,
-            Disposed
-        }
-
         public class LifetimeLogItem(LifetimeLogAction action, object service)
         {
             public LifetimeLogAction Action { get; } = action;
@@ -230,31 +223,6 @@ namespace Liman.Tests
             public override string ToString()
             {
                 return $"{Action} - {Service.GetType().Name} - {Service}";
-            }
-        }
-
-        public class LifetimeLog : IEnumerable<LifetimeLogItem>
-        {
-            private readonly List<LifetimeLogItem> items = [];
-
-            public void Log(LifetimeLogAction action, object service)
-            {
-                items.Add(new LifetimeLogItem(action, service));
-            }
-
-            public int IndexOf(LifetimeLogAction action, object service)
-            {
-                return items.FindIndex(item => item.Action == action && item.Service == service);
-            }
-
-            public IEnumerator<LifetimeLogItem> GetEnumerator()
-            {
-                return items.GetEnumerator();
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
             }
         }
 

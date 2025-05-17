@@ -1,4 +1,5 @@
 ﻿using Liman.Implementation;
+using Liman.Implementation.Classics;
 using Liman.Implementation.Lifetimes;
 using Liman.Implementation.ServiceCollections;
 using Liman.Implementation.ServiceFactories;
@@ -16,7 +17,7 @@ namespace Liman
 
         public static void ApplyTo(this ILimanServiceCollection serviceCollection, IServiceCollection classicServiceCollection)
         {
-
+            ClassicServiceCollectionHelper.ApplyTo(serviceCollection, classicServiceCollection);
         }
 
         public static ILimanServiceProvider CreateServiceProvider(this ILimanServiceCollection serviceCollection, bool validate = true)
@@ -24,7 +25,7 @@ namespace Liman
             if (serviceCollection is LimanServiceCollection implementationRepository)
             {
                 var lifetimeManager = new LimanServiceLifetimeManager(implementationRepository);
-                var serviceFactory = new ServiceFactoryProvider(implementationRepository, lifetimeManager, validate);
+                var serviceFactory = new ServiceFactoryProvider(implementationRepository, lifetimeManager, x => NullServiceFactory.Instance, validate);
                 var serviceProvider = new LimanServiceProvider(serviceFactory, lifetimeManager);
                 return serviceProvider;
             }

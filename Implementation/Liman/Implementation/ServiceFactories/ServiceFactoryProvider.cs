@@ -8,6 +8,7 @@ namespace Liman.Implementation.ServiceFactories
         private readonly Dictionary<Type, IServiceFactory> factoryByServiceType = [];
         private readonly ILimanServiceCollection serviceImplementationRepository;
         private readonly ILimanServiceLifetimeManager serviceCollection;
+        private readonly Func<Type, IServiceFactory> defaultServiceFactoryBuilder;
         private readonly bool validate;
         private readonly List<ILimanImplementation> creationsInProgress = [];
         private readonly List<ILimanInitializable> uninitialized = [];
@@ -15,10 +16,12 @@ namespace Liman.Implementation.ServiceFactories
         public ServiceFactoryProvider(
             ILimanServiceCollection serviceCollection,
             ILimanServiceLifetimeManager serviceLifetimeManager,
+            [NoInjection] Func<Type, IServiceFactory> defaultServiceFactoryBuilder,
             [NoInjection] bool validate)
         {
             this.serviceImplementationRepository = serviceCollection;
             this.serviceCollection = serviceLifetimeManager;
+            this.defaultServiceFactoryBuilder = defaultServiceFactoryBuilder;
             this.validate = validate;
 
             factoryByServiceType.Add(typeof(ServiceFactoryProvider), new ConstantFactory(this));
@@ -35,22 +38,23 @@ namespace Liman.Implementation.ServiceFactories
 
             if (serviceImplementationRepository.TryGetSingle(serviceType, out var implementationType))
             {
-                if (factoryByServiceType.TryGetValue(implementationType.Type, out factory))
+                if (!factoryByServiceType.TryGetValue(implementationType.Type, out factory))
                 {
-                    return factory;
+                    factory = Create(implementationType);
+                    if (implementationType.Type != serviceType)
+                    {
+                        factoryByServiceType.Add(implementationType.Type, factory);
+                    }
                 }
 
-                factory = Create(implementationType);
                 factoryByServiceType.Add(serviceType, factory);
-                if (serviceType != implementationType.Type)
-                {
-                    factoryByServiceType.Add(implementationType.Type, factory);
-                }
                 return factory;
             }
             else
             {
-                return NullServiceFactory.Instance;
+                factory = defaultServiceFactoryBuilder.Invoke(serviceType);
+                factoryByServiceType.Add(serviceType, factory);
+                return factory;
             }
         }
 
