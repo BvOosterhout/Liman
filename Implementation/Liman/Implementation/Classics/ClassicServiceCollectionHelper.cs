@@ -14,6 +14,8 @@ namespace Liman.Implementation.Classics
 
         public static void ApplyTo(ILimanServiceCollection limanServiceCollection, IServiceCollection classicServiceCollection)
         {
+            classicServiceCollection.AddSingleton<IClassicServiceProviderFactory, ClassicServiceProviderFactory>();
+
             foreach (var serviceImplementation in limanServiceCollection.GetAllServiceImplementations())
             {
                 AddService(limanServiceCollection, classicServiceCollection, serviceImplementation.Key, serviceImplementation.Value);
@@ -78,13 +80,9 @@ namespace Liman.Implementation.Classics
             {
                 if (serviceType == typeof(ILimanServiceProvider))
                 {
-                    classicServiceCollection.AddScoped<ILimanServiceProvider>(classicServiceProvider => {
-                        var serviceFactoryProvider = classicServiceProvider.GetRequiredService<IServiceFactoryProvider>();
-                        var lifetimeManager = classicServiceProvider.GetRequiredService<ILimanServiceLifetimeManager>();
-
-                        var result = new LimanServiceProvider(serviceFactoryProvider, lifetimeManager);
-                        result.SetScope(new LimanServiceScope(classicServiceProvider));
-                        return result;
+                    classicServiceCollection.AddTransient<ILimanServiceProvider>(classicServiceProvider => {
+                        var factory = classicServiceProvider.GetRequiredService<IClassicServiceProviderFactory>();
+                        return factory.Get(classicServiceProvider);
                     });
                 }
             }

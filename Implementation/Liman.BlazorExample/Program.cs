@@ -1,10 +1,16 @@
+using Liman;
 using Liman.BlazorExample.Components;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+var serviceCollection = LimanFactory.CreateServiceCollection();
+serviceCollection.Add(Assembly.GetExecutingAssembly());
+serviceCollection.ApplyTo(builder.Services);
 
 var app = builder.Build();
 
