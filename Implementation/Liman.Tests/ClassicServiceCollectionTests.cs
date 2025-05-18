@@ -85,6 +85,83 @@ namespace Liman.Tests
             serviceInstance1.Should().NotBeSameAs(serviceInstance2);
         }
 
+        [Fact]
+        public void ScopedService_WhenScopeIsDisposed_ServiceIsDisposed()
+        {
+            // Arrange
+            limanServiceCollection.Add(typeof(MyLifetimeLogger), LimanServiceLifetime.Scoped);
+            limanServiceCollection.Add(typeof(LifetimeLog), LimanServiceLifetime.Singleton);
+            limanServiceCollection.ApplyTo(classicServiceCollection);
+            var serviceProvider = (IServiceProvider)classicServiceCollection.BuildServiceProvider();
+            var scope = serviceProvider.CreateScope();
+            var serviceInstance = scope.ServiceProvider.GetRequiredService<MyLifetimeLogger>();
+
+            // Act
+            scope.Dispose();
+
+            // Assert
+            var lifetimeLog = serviceProvider.GetRequiredService<LifetimeLog>();
+            lifetimeLog.Should().ContainSingle(x => x.Action == LifetimeLogAction.Disposed && x.Service == serviceInstance);
+        }
+
+        [Fact]
+        public void ScopedService_WhenScopeIsDisposed_TransientChildServiceIsDisposed()
+        {
+            // Arrange
+            limanServiceCollection.Add(typeof(ParentLifetimeLogger), LimanServiceLifetime.Scoped);
+            limanServiceCollection.Add(typeof(ChildLifetimeLogger), LimanServiceLifetime.Transient);
+            limanServiceCollection.Add(typeof(LifetimeLog), LimanServiceLifetime.Singleton);
+            limanServiceCollection.ApplyTo(classicServiceCollection);
+            var serviceProvider = (IServiceProvider)classicServiceCollection.BuildServiceProvider();
+            var scope = serviceProvider.CreateScope();
+            var serviceInstance = scope.ServiceProvider.GetRequiredService<ParentLifetimeLogger>();
+
+            // Act
+            scope.Dispose();
+
+            // Assert
+            var lifetimeLog = serviceProvider.GetRequiredService<LifetimeLog>();
+            lifetimeLog.Should().ContainSingle(x => x.Action == LifetimeLogAction.Disposed && x.Service == serviceInstance.Child);
+        }
+
+        [Fact]
+        public void SingletonService_WhenServiceProviderIsDisposed_ServiceIsDisposed()
+        {
+            // Arrange
+            limanServiceCollection.Add(typeof(MyLifetimeLogger), LimanServiceLifetime.Singleton);
+            limanServiceCollection.Add(typeof(LifetimeLog), LimanServiceLifetime.Singleton);
+            limanServiceCollection.ApplyTo(classicServiceCollection);
+            var serviceProvider = classicServiceCollection.BuildServiceProvider();
+            var serviceInstance = serviceProvider.GetRequiredService<MyLifetimeLogger>();
+            var lifetimeLog = serviceProvider.GetRequiredService<LifetimeLog>();
+
+            // Act
+            serviceProvider.Dispose();
+
+            // Assert
+            lifetimeLog.Should().ContainSingle(x => x.Action == LifetimeLogAction.Disposed && x.Service == serviceInstance);
+        }
+
+        [Fact]
+        public void SingletonService_WhenServiceProviderIsDisposed_TransientChildServiceIsDisposed()
+        {
+            // Arrange
+            limanServiceCollection.Add(typeof(ParentLifetimeLogger), LimanServiceLifetime.Singleton);
+            limanServiceCollection.Add(typeof(ChildLifetimeLogger), LimanServiceLifetime.Singleton);
+            limanServiceCollection.Add(typeof(LifetimeLog), LimanServiceLifetime.Singleton);
+            limanServiceCollection.ApplyTo(classicServiceCollection);
+            var serviceProvider = classicServiceCollection.BuildServiceProvider();
+            var serviceInstance = serviceProvider.GetRequiredService<ParentLifetimeLogger>();
+            var lifetimeLog = serviceProvider.GetRequiredService<LifetimeLog>();
+
+            // Act
+            serviceProvider.Dispose();
+
+            // Assert
+            lifetimeLog.Should().ContainSingle(x => x.Action == LifetimeLogAction.Disposed && x.Service == serviceInstance.Child);
+        }
+
+
         public interface IMyService
         {
         }
@@ -94,11 +171,36 @@ namespace Liman.Tests
 
         }
 
-        public class MyLifetimeLogger : ILimanInitializable, IDisposable
+        public class ParentLifetimeLogger : ILimanInitializable, IDisposable
         {
             protected readonly LifetimeLog log;
 
-            public MyLifetimeLogger(LifetimeLog log)
+            public ChildLifetimeLogger Child { get; }
+
+            public ParentLifetimeLogger(LifetimeLog log, ChildLifetimeLogger child)
+            {
+                this.log = log;
+                Child = child;
+                log.Log(LifetimeLogAction.Construct, this);
+            }
+
+            public void Initialize()
+            {
+                log.Log(LifetimeLogAction.Initialized, this);
+            }
+
+            public void Dispose()
+            {
+                log.Log(LifetimeLogAction.Disposed, this);
+                GC.SuppressFinalize(this);
+            }
+        }
+
+        public class ChildLifetimeLogger : ILimanInitializable, IDisposable
+        {
+            protected readonly LifetimeLog log;
+
+            public ChildLifetimeLogger(LifetimeLog log)
             {
                 this.log = log;
                 log.Log(LifetimeLogAction.Construct, this);

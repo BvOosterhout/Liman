@@ -3,17 +3,12 @@ using Liman.Implementation.Scopes;
 using Liman.Implementation.ServiceFactories;
 using Liman.Implementation.ServiceProviders;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Liman.Implementation.Classics
 {
     internal class ClassicServiceProviderFactory : IClassicServiceProviderFactory
     {
-        private Dictionary<IServiceProvider, ILimanServiceProvider> providerByClassic = new();
+        private Dictionary<IServiceProvider, LimanServiceProvider> providerByClassic = new();
 
         public ILimanServiceProvider Get(IServiceProvider classicServiceProvider)
         {
@@ -22,8 +17,23 @@ namespace Liman.Implementation.Classics
                 var serviceFactoryProvider = classicServiceProvider.GetRequiredService<IServiceFactoryProvider>();
                 var lifetimeManager = classicServiceProvider.GetRequiredService<ILimanServiceLifetimeManager>();
 
+                LimanServiceScope? limanScope;
+
+                try
+                {
+                    limanScope = classicServiceProvider.GetService<LimanServiceScope>();
+                }
+                catch
+                {
+                    // Assume that there is no scope
+                    limanScope = null;
+                }
+
                 result = new LimanServiceProvider(serviceFactoryProvider, lifetimeManager);
-                (result as LimanServiceProvider)!.SetScope(new LimanServiceScope(classicServiceProvider));
+                if (limanScope != null)
+                {
+                    result.SetScope(limanScope);
+                }
             }
 
             return result;

@@ -15,6 +15,7 @@ namespace Liman.Implementation.Classics
         public static void ApplyTo(ILimanServiceCollection limanServiceCollection, IServiceCollection classicServiceCollection)
         {
             classicServiceCollection.AddSingleton<IClassicServiceProviderFactory, ClassicServiceProviderFactory>();
+            classicServiceCollection.AddScoped<LimanServiceScope>();
 
             foreach (var serviceImplementation in limanServiceCollection.GetAllServiceImplementations())
             {
@@ -128,7 +129,7 @@ namespace Liman.Implementation.Classics
             return effectiveLifetime switch
             {
                 LimanServiceLifetime.Singleton or LimanServiceLifetime.Application => ServiceLifetime.Singleton,
-                LimanServiceLifetime.Scoped => ServiceLifetime.Scoped,
+                LimanServiceLifetime.Scoped => ServiceLifetime.Transient, // To ensure proper disposal, scoped services are registered as transient
                 LimanServiceLifetime.Transient => ServiceLifetime.Transient,
                 _ => throw new InvalidOperationException($"Lifetime '{effectiveLifetime}' cannot be an effective service lifetime"),
             };
