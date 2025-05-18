@@ -1,5 +1,4 @@
-﻿using Liman;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -171,7 +170,7 @@ namespace Liman.Implementation.ServiceCollections
 
         public IEnumerable<KeyValuePair<Type, ILimanImplementation>> GetAllServiceImplementations()
         {
-            foreach  (var keyValue in implementationsByService.Concat(genericImplementationsByService))
+            foreach (var keyValue in implementationsByService.Concat(genericImplementationsByService))
             {
                 var serviceType = keyValue.Key;
                 var implementations = keyValue.Value;

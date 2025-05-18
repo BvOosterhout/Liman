@@ -1,7 +1,6 @@
 ﻿using FluentAssertions;
 using Liman.Tests.Helpers;
 using Microsoft.Extensions.DependencyInjection;
-using System.Collections;
 
 namespace Liman.Tests
 {

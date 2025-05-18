@@ -20,8 +20,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liman.WikiExamples", "Liman
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liman.WinUiExample", "Liman.WinuiExample\Liman.WinUiExample.csproj", "{A1C903F3-8711-4A11-9D6E-1730C644186C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liman.BlazorExample", "Liman.BlazorExample\Liman.BlazorExample.csproj", "{6619FD9E-95EA-4621-90B9-C44E973B4A02}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,10 +48,6 @@ Global
 		{A1C903F3-8711-4A11-9D6E-1730C644186C}.Release|Any CPU.ActiveCfg = Release|x64
 		{A1C903F3-8711-4A11-9D6E-1730C644186C}.Release|Any CPU.Build.0 = Release|x64
 		{A1C903F3-8711-4A11-9D6E-1730C644186C}.Release|Any CPU.Deploy.0 = Release|x64
-		{6619FD9E-95EA-4621-90B9-C44E973B4A02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6619FD9E-95EA-4621-90B9-C44E973B4A02}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6619FD9E-95EA-4621-90B9-C44E973B4A02}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6619FD9E-95EA-4621-90B9-C44E973B4A02}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -62,7 +56,6 @@ Global
 		{8E395405-50D1-462E-804D-1D6E7B340D15} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{B09A10AB-9F46-4AAF-AE92-0FF9E18A86D7} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{A1C903F3-8711-4A11-9D6E-1730C644186C} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
-		{6619FD9E-95EA-4621-90B9-C44E973B4A02} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {59A0908D-C34A-4B2E-AE84-A4070B86A2C1}

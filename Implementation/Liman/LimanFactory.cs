@@ -1,10 +1,8 @@
 ﻿using Liman.Implementation;
-using Liman.Implementation.Classics;
 using Liman.Implementation.Lifetimes;
 using Liman.Implementation.ServiceCollections;
 using Liman.Implementation.ServiceFactories;
 using Liman.Implementation.ServiceProviders;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Liman
 {
@@ -13,11 +11,6 @@ namespace Liman
         public static ILimanServiceCollection CreateServiceCollection()
         {
             return new LimanServiceCollection();
-        }
-
-        public static void ApplyTo(this ILimanServiceCollection serviceCollection, IServiceCollection classicServiceCollection)
-        {
-            ClassicServiceCollectionHelper.ApplyTo(serviceCollection, classicServiceCollection);
         }
 
         public static ILimanServiceProvider CreateServiceProvider(this ILimanServiceCollection serviceCollection, bool validate = true)
