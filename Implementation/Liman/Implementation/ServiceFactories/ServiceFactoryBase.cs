@@ -24,7 +24,7 @@ namespace Liman.Implementation.ServiceFactories
             if (customArguments.Length != ImplementationType.CustomParameters.Count)
             {
                 var expectedTypes = string.Join(", ", ImplementationType.CustomParameters.Select(x => x.GetReadableName()));
-                var receivedTypes = string.Join(", ", ImplementationType.CustomParameters.Select(x => x == null ? "null" : x.GetType().GetReadableName()));
+                var receivedTypes = string.Join(", ", customArguments.Select(x => x == null ? "null" : x.GetType().GetReadableName()));
 
                 throw new LimanException($"Invalid custom arguments for implementation '{ImplementationType}'. Expected types '{expectedTypes}', received '{receivedTypes}'");
             }

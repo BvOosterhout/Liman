@@ -4,13 +4,13 @@ namespace Liman.Implementation.ServiceCollections
 {
     internal class LimanImplementation : ILimanImplementation
     {
-        public LimanImplementation(Type type, LimanServiceLifetime lifetime, Delegate? factoryMethod)
+        public LimanImplementation(Type? type, LimanServiceLifetime lifetime, Delegate? factoryMethod)
         {
             Type = type;
             Lifetime = lifetime;
 
             FactoryMethod = factoryMethod;
-            if (FactoryMethod == null) Constructor = GetConstructor(type);
+            if (FactoryMethod == null) Constructor = GetConstructor(type ?? throw new ArgumentNullException());
 
             var usedServices = new List<Type>();
             var customParameters = new List<Type>();
@@ -39,7 +39,7 @@ namespace Liman.Implementation.ServiceCollections
             CustomParameters = customParameters;
         }
 
-        public Type Type { get; }
+        public Type? Type { get; }
         public LimanServiceLifetime Lifetime { get; }
         public IReadOnlyList<Type> ServiceParameters { get; }
         public IReadOnlyList<Type> CustomParameters { get; }
@@ -80,7 +80,14 @@ namespace Liman.Implementation.ServiceCollections
 
         public override string ToString()
         {
-            return Type.GetReadableName();
+            if (Type != null)
+            {
+                return Type.GetReadableName();
+            }
+            else
+            {
+                return FactoryMethod!.Method.Name;
+            }
         }
     }
 }

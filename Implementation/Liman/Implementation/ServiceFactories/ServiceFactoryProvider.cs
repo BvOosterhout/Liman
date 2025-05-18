@@ -6,8 +6,9 @@ namespace Liman.Implementation.ServiceFactories
     internal class ServiceFactoryProvider : IServiceFactoryProvider
     {
         private readonly Dictionary<Type, IServiceFactory> factoryByServiceType = [];
-        private readonly ILimanServiceCollection serviceImplementationRepository;
-        private readonly ILimanServiceLifetimeManager serviceCollection;
+        private readonly Dictionary<ILimanImplementation, IServiceFactory> factoryByImplementationType = [];
+        private readonly ILimanServiceCollection serviceCollection;
+        private readonly ILimanServiceLifetimeManager lifetimeManager;
         private readonly Func<Type, IServiceFactory> defaultServiceFactoryBuilder;
         private readonly bool validate;
         private readonly List<ILimanImplementation> creationsInProgress = [];
@@ -19,14 +20,14 @@ namespace Liman.Implementation.ServiceFactories
             [NoInjection] Func<Type, IServiceFactory> defaultServiceFactoryBuilder,
             [NoInjection] bool validate)
         {
-            this.serviceImplementationRepository = serviceCollection;
-            this.serviceCollection = serviceLifetimeManager;
+            this.serviceCollection = serviceCollection;
+            this.lifetimeManager = serviceLifetimeManager;
             this.defaultServiceFactoryBuilder = defaultServiceFactoryBuilder;
             this.validate = validate;
 
-            factoryByServiceType.Add(typeof(ServiceFactoryProvider), new ConstantFactory(this));
-            factoryByServiceType.Add(serviceCollection.GetType(), new ConstantFactory(serviceCollection));
-            factoryByServiceType.Add(serviceLifetimeManager.GetType(), new ConstantFactory(serviceLifetimeManager));
+            AddConstant(this);
+            AddConstant(serviceCollection);
+            AddConstant(serviceLifetimeManager);
         }
 
         public IServiceFactory Get(Type serviceType)
@@ -36,17 +37,9 @@ namespace Liman.Implementation.ServiceFactories
                 return factory;
             }
 
-            if (serviceImplementationRepository.TryGetSingle(serviceType, out var implementationType))
+            if (serviceCollection.TryGetSingle(serviceType, out var implementationType))
             {
-                if (!factoryByServiceType.TryGetValue(implementationType.Type, out factory))
-                {
-                    factory = Create(implementationType);
-                    if (implementationType.Type != serviceType)
-                    {
-                        factoryByServiceType.Add(implementationType.Type, factory);
-                    }
-                }
-
+                factory = Get(implementationType);
                 factoryByServiceType.Add(serviceType, factory);
                 return factory;
             }
@@ -58,11 +51,22 @@ namespace Liman.Implementation.ServiceFactories
             }
         }
 
+        public IServiceFactory Get(ILimanImplementation implementationType)
+        {
+            if (!factoryByImplementationType.TryGetValue(implementationType, out var factory))
+            {
+                factory = Create(implementationType);
+                factoryByImplementationType.Add(implementationType, factory);
+            }
+
+            return factory;
+        }
+
         public IEnumerable<IServiceFactory> GetApplicationServices()
         {
-            foreach (var implementation in serviceImplementationRepository.GetApplicationImplementations())
+            foreach (var implementation in serviceCollection.GetApplicationImplementations())
             {
-                yield return Get(implementation.Type);
+                yield return Get(implementation);
             }
         }
 
@@ -78,6 +82,11 @@ namespace Liman.Implementation.ServiceFactories
 
                 if (serviceType == typeof(Type))
                 {
+                    if (parentImplementation.Type == null)
+                    {
+                        throw new LimanException($"Cannot fill the 'Type' parameter for the constructor of {parentImplementation}, no type was defined.");
+                    }
+
                     factory = new ConstantFactory(parentImplementation.Type);
                 }
                 else
@@ -124,20 +133,30 @@ namespace Liman.Implementation.ServiceFactories
             InitializeAll();
         }
 
+        private void AddConstant(object value)
+        {
+            if (!serviceCollection.TryGetSingle(value.GetType(), out var implementationType))
+            {
+                throw new ArgumentException();
+            }
+
+            factoryByImplementationType.Add(implementationType, new ConstantFactory(value));
+        }
+
         private IServiceFactory Create(ILimanImplementation implementationType)
         {
             if (validate)
             {
-                serviceImplementationRepository.Validate(implementationType);
+                serviceCollection.Validate(implementationType);
             }
 
-            var effectiveLifetime = serviceImplementationRepository.GetEffectiveLifetime(implementationType);
+            var effectiveLifetime = serviceCollection.GetEffectiveLifetime(implementationType);
 
             return effectiveLifetime switch
             {
-                LimanServiceLifetime.Singleton or LimanServiceLifetime.Application => new SingletonServiceFactory(this, serviceCollection, implementationType),
-                LimanServiceLifetime.Transient => new TransientServiceFactory(this, serviceCollection, implementationType),
-                LimanServiceLifetime.Scoped => new ScopedServiceFactory(this, serviceCollection, implementationType),
+                LimanServiceLifetime.Singleton or LimanServiceLifetime.Application => new SingletonServiceFactory(this, lifetimeManager, implementationType),
+                LimanServiceLifetime.Transient => new TransientServiceFactory(this, lifetimeManager, implementationType),
+                LimanServiceLifetime.Scoped => new ScopedServiceFactory(this, lifetimeManager, implementationType),
                 _ => throw new InvalidOperationException(),
             };
         }

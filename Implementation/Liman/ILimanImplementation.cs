@@ -4,7 +4,7 @@ namespace Liman
 {
     public interface ILimanImplementation
     {
-        Type Type { get; }
+        Type? Type { get; }
         LimanServiceLifetime Lifetime { get; }
         IReadOnlyList<Type> ServiceParameters { get; }
         IReadOnlyList<Type> CustomParameters { get; }

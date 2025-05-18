@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Liman.Tests.AssemblyInject;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections;
 using System.Reflection;
 
 namespace Liman.Tests
@@ -129,17 +130,29 @@ namespace Liman.Tests
             VerifyExistence<Stack<string>>(LimanServiceLifetime.Transient);
         }
 
-        private void VerifyExistence<T>(LimanServiceLifetime lifetime)
+        [Fact]
+        public void Add_WithFactoryMethod_ViaClassicDependencyConfiguration()
         {
-            VerifyExistence(typeof(T), lifetime);
+            // Arrange
+
+            // Act
+            serviceCollection.Add(typeof(ClassicDependencyConfigurationWithFactory));
+
+            // Assert
+            VerifyExistence<IEnumerable>(LimanServiceLifetime.Transient, [typeof(IServiceProvider)]);
         }
 
-        private void VerifyExistence(Type serviceType, LimanServiceLifetime lifetime)
+        private void VerifyExistence<T>(LimanServiceLifetime lifetime, Type[]? serviceParameters = null)
+        {
+            VerifyExistence(typeof(T), lifetime, serviceParameters);
+        }
+
+        private void VerifyExistence(Type serviceType, LimanServiceLifetime lifetime, Type[]? serviceParameters = null)
         {
             serviceCollection.TryGetSingle(serviceType, out var implementation).Should().BeTrue();
             implementation.Should().NotBeNull();
             implementation.Lifetime.Should().Be(lifetime);
-            implementation.ServiceParameters.Should().BeEmpty();
+            implementation.ServiceParameters.Should().BeEquivalentTo(serviceParameters ?? []);
             implementation.CustomParameters.Should().BeEmpty();
         }
 
@@ -168,6 +181,14 @@ namespace Liman.Tests
             public void Configure(IServiceCollection services)
             {
                 services.AddTransient(typeof(Stack<>), typeof(Stack<>));
+            }
+        }
+
+        public class ClassicDependencyConfigurationWithFactory : ILimanClassicDependencyConfiguration
+        {
+            public void Configure(IServiceCollection services)
+            {
+                services.AddTransient(typeof(IEnumerable), classicServiceProvider => new Stack<string>());
             }
         }
     }

@@ -7,5 +7,6 @@
         void FinishCreation(ILimanImplementation serviceImplementation, object result);
         void PrepareCreation(ILimanImplementation serviceImplementation);
         IEnumerable<IServiceFactory> GetApplicationServices();
+        IServiceFactory Get(ILimanImplementation implementationType);
     }
 }

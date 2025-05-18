@@ -9,5 +9,6 @@
         void DeregisterDependency(object dependency);
         void RegisterDependency(object user, object dependency);
         void DeregisterDependency(object user, object dependency);
+        object? GetService(ILimanImplementation implementationType, params object[] customArguments);
     }
 }

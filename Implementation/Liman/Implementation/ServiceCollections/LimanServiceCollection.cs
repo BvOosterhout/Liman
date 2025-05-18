@@ -154,15 +154,26 @@ namespace Liman.Implementation.ServiceCollections
                 {
                     foreach (var genericImplementation in genericImplementations)
                     {
-                        var implementationType = genericImplementation.Type.MakeGenericType(serviceType.GetGenericArguments());
-
-                        if (!implementationByType.TryGetValue(implementationType, out var implementation))
+                        if (genericImplementation.Type != null)
                         {
-                            implementation = new LimanImplementation(implementationType, genericImplementation.Lifetime, null);
-                            implementationByType.Add(implementationType, implementation);
-                        }
+                            var implementationType = genericImplementation.Type.MakeGenericType(serviceType.GetGenericArguments());
 
-                        yield return implementation;
+                            if (!implementationByType.TryGetValue(implementationType, out var implementation))
+                            {
+                                implementation = new LimanImplementation(implementationType, genericImplementation.Lifetime, null);
+                                implementationByType.Add(implementationType, implementation);
+                            }
+
+                            yield return implementation;
+                        }
+                        else if (genericImplementation.FactoryMethod != null)
+                        {
+                            yield return genericImplementation;
+                        }
+                        else
+                        {
+                            throw new InvalidOperationException();
+                        }
                     }
                 }
             }
@@ -357,16 +368,19 @@ namespace Liman.Implementation.ServiceCollections
 
         private void Add(LimanImplementation implementation, IEnumerable<Type> serviceTypes)
         {
-            implementationByType.Add(implementation.Type, implementation);
+            if (implementation.Type != null)
+            {
+                implementationByType.Add(implementation.Type, implementation);
+            }
 
             if (implementation.Lifetime == LimanServiceLifetime.Application)
             {
-                if (implementation.Type.IsGenericTypeDefinition)
+                if (implementation.Type != null && implementation.Type.IsGenericTypeDefinition)
                     throw new LimanException($"Service implementation '{implementation}' cannot have lifetime '{implementation.Lifetime}', because it's a generic type.");
                 applicationServices.Add(implementation);
             }
 
-            if (implementation.Type.IsGenericTypeDefinition)
+            if (implementation.Type != null && implementation.Type.IsGenericTypeDefinition)
             {
                 foreach (var serviceType in serviceTypes)
                 {

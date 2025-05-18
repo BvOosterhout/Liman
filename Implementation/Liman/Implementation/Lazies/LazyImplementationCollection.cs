@@ -6,11 +6,11 @@ namespace Liman.Implementation.Lazies
     [LimanService(LimanServiceLifetime.Transient, typeof(LazyImplementationCollection<>), typeof(ILimanImplementationCollection<>))]
     internal class LazyImplementationCollection<T> : ILimanImplementationCollection<T>
     {
-        private readonly IServiceProvider serviceProvider;
+        private readonly ILimanServiceProvider serviceProvider;
         private readonly ILimanServiceCollection serviceCollection;
         private List<T>? implementations;
 
-        public LazyImplementationCollection(IServiceProvider serviceProvider, ILimanServiceCollection serviceCollection)
+        public LazyImplementationCollection(ILimanServiceProvider serviceProvider, ILimanServiceCollection serviceCollection)
         {
             this.serviceProvider = serviceProvider;
             this.serviceCollection = serviceCollection;
@@ -34,9 +34,9 @@ namespace Liman.Implementation.Lazies
 
                 implementations = new List<T>();
 
-                foreach (var type in implementationTypes)
+                foreach (var implementationType in implementationTypes)
                 {
-                    implementations.Add((T?)serviceProvider.GetRequiredService(type.Type) ?? throw new InvalidOperationException());
+                    implementations.Add((T?)serviceProvider.GetRequiredService(implementationType) ?? throw new InvalidOperationException());
                 }
             }
 

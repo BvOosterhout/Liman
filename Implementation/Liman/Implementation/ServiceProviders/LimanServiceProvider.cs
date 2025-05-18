@@ -20,14 +20,13 @@ namespace Liman.Implementation.ServiceProviders
         public object? GetService(Type serviceType, params object[] customArguments)
         {
             var factory = serviceFactoryProvider.Get(serviceType);
-            var implementation = factory.Get(scope, customArguments);
+            return GetService(factory, customArguments);
+        }
 
-            if (user != null && factory.Lifetime == LimanServiceLifetime.Transient && implementation != null)
-            {
-                lifetimeManager.AddTransientDependency(user, implementation);
-            }
-
-            return implementation;
+        public object? GetService(ILimanImplementation implementationType, params object[] customArguments)
+        {
+            var factory = serviceFactoryProvider.Get(implementationType);
+            return GetService(factory, customArguments);
         }
 
         public void RemoveService(object service)
@@ -111,6 +110,18 @@ namespace Liman.Implementation.ServiceProviders
             {
                 lifetimeManager.DeleteAllServices();
             }
+        }
+
+        private object? GetService(IServiceFactory factory, params object[] customArguments)
+        {
+            var implementation = factory.Get(scope, customArguments);
+
+            if (user != null && factory.Lifetime == LimanServiceLifetime.Transient && implementation != null)
+            {
+                lifetimeManager.AddTransientDependency(user, implementation);
+            }
+
+            return implementation;
         }
     }
 }
