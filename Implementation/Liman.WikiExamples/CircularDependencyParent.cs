@@ -3,5 +3,5 @@
 [LimanService]
 internal class CircularDependencyParent(CircularDependencyChild child)
 {
-    public CircularDependencyChild Child { get => Child; }
+    public CircularDependencyChild Child { get => child; }
 }
