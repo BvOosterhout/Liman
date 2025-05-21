@@ -18,7 +18,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liman.WikiExamples", "Liman.WikiExamples\Liman.WikiExamples.csproj", "{B09A10AB-9F46-4AAF-AE92-0FF9E18A86D7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liman.WinUiExample", "Liman.WinuiExample\Liman.WinUiExample.csproj", "{A1C903F3-8711-4A11-9D6E-1730C644186C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Liman.WinUiExample", "Liman.WinUiExample\Liman.WinUiExample.csproj", "{A1C903F3-8711-4A11-9D6E-1730C644186C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
