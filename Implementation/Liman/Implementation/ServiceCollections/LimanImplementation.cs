@@ -10,7 +10,7 @@ namespace Liman.Implementation.ServiceCollections
             Lifetime = lifetime;
 
             FactoryMethod = factoryMethod;
-            if (FactoryMethod == null) Constructor = GetConstructor(type ?? throw new ArgumentNullException());
+            if (FactoryMethod == null) Constructor = GetConstructor(type ?? throw new ArgumentNullException(nameof(type)));
 
             var usedServices = new List<Type>();
             var customParameters = new List<Type>();
@@ -31,7 +31,7 @@ namespace Liman.Implementation.ServiceCollections
                 }
                 else
                 {
-                    throw new LimanException($"Some 'NoInjection' parameters are NOT at the end of the constructor for service implementation '{type.GetReadableName()}'");
+                    throw new LimanException($"Some 'NoInjection' parameters are NOT at the end of the constructor for service implementation '{this}'");
                 }
             }
 
