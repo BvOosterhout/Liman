@@ -1,8 +1,5 @@
-﻿################################################################################
-# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
-################################################################################
-
 .vs
 obj
 bin
 /Implementation/Liman/packages
+*.csproj.user
