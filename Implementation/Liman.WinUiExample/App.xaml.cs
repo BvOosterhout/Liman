@@ -37,7 +37,5 @@ namespace Liman.WinUiExample
             var application = LimanFactory.CreateApplication(serviceCollection);
             application.Run();
         }
-
-        private Window? m_window;
     }
 }
