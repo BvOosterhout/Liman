@@ -18,7 +18,8 @@
     <PackageOutputPath>packages\</PackageOutputPath>
     <NeutralLanguage>en</NeutralLanguage>
     <PackageLicenseExpression>Unlicense</PackageLicenseExpression>
-    <EnforceCodeStyleInBuild>False</EnforceCodeStyleInBuild>
+    <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
+    <IncludeSymbols>False</IncludeSymbols>
   </PropertyGroup>
 
   <ItemGroup>
