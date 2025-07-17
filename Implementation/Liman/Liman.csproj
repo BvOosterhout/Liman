@@ -19,7 +19,8 @@
     <NeutralLanguage>en</NeutralLanguage>
     <PackageLicenseExpression>Unlicense</PackageLicenseExpression>
     <EnforceCodeStyleInBuild>True</EnforceCodeStyleInBuild>
-    <IncludeSymbols>False</IncludeSymbols>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>   
   </PropertyGroup>
 
   <ItemGroup>
