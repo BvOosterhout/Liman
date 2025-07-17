@@ -9,8 +9,6 @@ name: .NET
 on:
   pull_request:
     branches: [ "master", "develop" ]
-  push:
-    branches: ["feature/**"]
 
 jobs:
   build:
